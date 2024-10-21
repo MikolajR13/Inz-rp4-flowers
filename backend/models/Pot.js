@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import wateringHistorySchema from './WateringHistory';
 
 const potSchema = new mongoose.Schema({
   potName: { type: String, required: true },
@@ -18,7 +19,7 @@ const potSchema = new mongoose.Schema({
     soilType: String,
     temperature: String
   },
-  wateringHistory: { type: [mongoose.Schema.Types.ObjectId], ref: 'WateringHistory', default: [] }
+  wateringHistory: { type: [wateringHistorySchema], default: [] }
 }, 
 {
     timestamps: true
