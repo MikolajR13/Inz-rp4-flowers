@@ -13,6 +13,23 @@ export const getUser = async (req, res) =>{
     }
 }
 
+export const getUserById = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ success: false, message: "Nie ma użytkownika o takim Id" });
+    }
+
+    try {
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony" });
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        console.log("Błąd pobierania użytkownika", error.message);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
 export const updateUser = async (req, res) => {
     const {id} = req.params;
     const user = req.body;
