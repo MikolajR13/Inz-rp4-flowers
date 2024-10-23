@@ -51,13 +51,18 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
     const {id} = req.params
     console.log("id:", id)
+
+    if (!mongoose.Types.ObjectId.isValid(id))
+    {
+        res.status(404).json({success: false, message: `User with id: ${id} not found`})
+    }
     try {
         await User.findByIdAndDelete(id);
         res.status(200).json({success: true, message: `User with id: ${id} deleted`})
         
     } catch(error) {
         console.log("Nie można usunąć użytkownika", error.message);
-        res.status(404).json({success: false, message: `User with id: ${id} not found`})
+        res.status(500).json( { success: false, message:"Server Error"});
         
     }
 }

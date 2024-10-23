@@ -10,6 +10,7 @@ import historyRoutes from "./routes/history.route.js";
 dotenv.config();
 
 const app = express()
+const PORT = process.env.PORT || 5000;
 app.use(express.json())
 
 app.use("/api/users", userRoutes);  // Ścieżka użytkownika - główna
@@ -21,7 +22,7 @@ app.get("/", (req, res) => {
 });
 
 
-app.listen(5000, () => {
+app.listen(PORT, () => {
     connectDb();
     console.log("Server started at https://localhost:5000")
 });
