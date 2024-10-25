@@ -1,79 +1,83 @@
 import React, { useState } from 'react';
-import { Box, Button, Heading, TextInput, Form, FormField, CheckBox } from 'grommet';
+import { Box, Button, Form, FormField, TextInput, Heading, Text } from 'grommet';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '', firstName: '', lastName: '' });
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleRegister = async () => {
     if (formData.password !== formData.confirmPassword) {
-      alert('Hasła muszą się zgadzać!');
+      setErrorMessage('Hasła muszą być takie same.');
       return;
     }
-    console.log('Registration data:', formData);
-    // TODO: w backendzie trzeba dorobić rejestrację
+
+    const userData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,  
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        navigate('/login');
+      } else {
+        setErrorMessage(data.message);
+      }
+    } catch (error) {
+      setErrorMessage('Błąd podczas rejestracji, spróbuj ponownie.');
+    }
   };
 
   return (
-    <Box fill align="center" justify="center" pad="large" background="light-2">
-      <Heading level="2" color="brand">Rejestracja</Heading>
-      <Box width="medium" pad="medium">
-        <Form
-          value={formData}
-          onChange={(nextValue) => setFormData(nextValue)}
-          onSubmit={handleSubmit}
-        >
-          <FormField name="firstName" label="Imię">
-            <TextInput
-              name="firstName"
-              placeholder="Podaj swoje imię"
-            />
-          </FormField>
-          <FormField name="lastName" label="Nazwisko">
-            <TextInput
-              name="lastName"
-              placeholder="Podaj swoje nazwisko"
-            />
-          </FormField>
-          <FormField name="email" label="Email">
-            <TextInput
-              name="email"
-              type="email"
-              placeholder="Podaj swój email"
-            />
-          </FormField>
-          <FormField name="password" label="Hasło">
-            <TextInput
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Podaj swoje hasło"
-            />
-          </FormField>
-          <FormField name="confirmPassword" label="Potwierdź Hasło">
-            <TextInput
-              name="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Potwierdź swoje hasło"
-            />
-          </FormField>
-          <CheckBox
-            label="Pokaż hasło"
-            checked={showPassword}
-            onChange={() => setShowPassword(!showPassword)}
+    <Box pad="large" align="center">
+      <Heading level="2">Rejestracja</Heading>
+      <Form onSubmit={handleRegister}>
+        <FormField label="Imię">
+          <TextInput
+            value={formData.firstName}
+            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
           />
-          <Box direction="row" justify="between" margin={{ top: 'medium' }}>
-            <Button type="submit" primary label="Zarejestruj się" color="brand" />
-          </Box>
-        </Form>
-      </Box>
+        </FormField>
+        <FormField label="Nazwisko">
+          <TextInput
+            value={formData.lastName}
+            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Email">
+          <TextInput
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Hasło">
+          <TextInput
+            type="password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Potwierdź Hasło">
+          <TextInput
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          />
+        </FormField>
+        {errorMessage && <Text color="status-critical">{errorMessage}</Text>}
+        <Button type="submit" label="Zarejestruj" primary margin={{ top: 'medium' }} />
+      </Form>
     </Box>
   );
 };

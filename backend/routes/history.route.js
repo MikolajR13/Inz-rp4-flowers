@@ -6,22 +6,23 @@ import {
   updateWateringHistory,
   deleteWateringHistory
 } from "../controllers/wateringHistory.controller.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });
 
 // Pobieranie całej historii podlewania dla danej doniczki
-router.get("/", getWateringHistory);
+router.get("/",authMiddleware, getWateringHistory);
 
 // Pobieranie konkretnego wpisu w historii podlewania
-router.get("/:historyId", getWateringHistoryById);
+router.get("/:historyId",authMiddleware, getWateringHistoryById);
 
 // Dodawanie nowego wpisu do historii podlewania dla danej doniczki
-router.post("/", addWateringHistory);
+router.post("/",authMiddleware, addWateringHistory);
 
 // Aktualizowanie konkretnego wpisu w historii podlewania
-router.put("/:historyId", updateWateringHistory);
+router.put("/:historyId",authMiddleware, updateWateringHistory);
 
 // Usuwanie konkretnego wpisu w historii podlewania
-router.delete("/:historyId", deleteWateringHistory);
+router.delete("/:historyId",authMiddleware, deleteWateringHistory);
 
 export default router;

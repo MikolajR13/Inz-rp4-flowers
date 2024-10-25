@@ -1,5 +1,7 @@
 import User from "../models/User.js"
 import mongoose from "mongoose";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 export const getUser = async (req, res) =>{
     try{
@@ -68,19 +70,27 @@ export const deleteUser = async (req, res) => {
 }
 
 export const createUser = async (req, res) => {
-    const user = req.body; // 
+    const { firstName, lastName, email, password } = req.body;
 
-    if(!user.firstName || !user.lastName || !user.email || !user.passwordHash){
-        return res.status(400).json({ success:false, message: "Proszę wypełnić wszystkie dane"});
+    if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ success: false, message: "Proszę wypełnić wszystkie dane" });
     }
 
-    const newUser = new User(user);
-
     try {
-        await newUser.save();
-        res.status(201).json({ success: true, data: newUser});
-    } catch(error) {
-            console.error("Problem z utworzeniem użytkownika", error.message);
-            res.status(500).json( { success: false, message:"Server Error"});
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email jest już zarejestrowany" });
         }
-}
+
+        // Hashowanie hasła
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const newUser = new User({ firstName, lastName, email, passwordHash });
+        await newUser.save();
+
+        res.status(201).json({ success: true, data: newUser });
+    } catch (error) {
+        console.error("Problem z utworzeniem użytkownika", error.message);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};

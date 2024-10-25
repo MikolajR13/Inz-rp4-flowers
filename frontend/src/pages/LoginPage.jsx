@@ -1,13 +1,34 @@
 import React, { useState } from 'react';
-import { Box, Button, Heading, TextInput, Form, FormField } from 'grommet';
+import { Box, Button, Heading, TextInput, Form, FormField, Text } from 'grommet';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Login data:', formData);
-    // TODO: dodać logowanie do backendu
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Jeśli logowanie jest poprawne, zapisz token i przekieruj użytkownika
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard'); // Przekierowanie na stronę użytkownika po zalogowaniu
+      } else {
+        setErrorMessage(data.message);
+      }
+    } catch (error) {
+      setErrorMessage('Błąd podczas logowania, spróbuj ponownie.');
+    }
   };
 
   return (
@@ -24,6 +45,8 @@ const LoginPage = () => {
               name="email"
               type="email"
               placeholder="Podaj swój email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </FormField>
           <FormField name="password" label="Hasło">
@@ -31,8 +54,11 @@ const LoginPage = () => {
               name="password"
               type="password"
               placeholder="Podaj swoje hasło"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </FormField>
+          {errorMessage && <Text color="status-critical">{errorMessage}</Text>}
           <Box direction="row" justify="between" margin={{ top: 'medium' }}>
             <Button type="submit" primary label="Zaloguj się" color="brand" />
           </Box>
