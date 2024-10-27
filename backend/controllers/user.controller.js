@@ -32,6 +32,36 @@ export const getUserById = async (req, res) => {
     }
 };
 
+// src/controllers/userController.js
+
+export const getUserInfo = async (req, res) => {
+    try {
+        // Sprawdza czy req.userId istnieje (dzięki middleware)
+        if (!req.userId) {
+            return res.status(400).json({ success: false, message: 'Nie znaleziono użytkownika' });
+        }
+
+        // Zwraca tylko id użytkownika
+        res.status(200).json({ success: true, data: { id: req.userId } });
+    } catch (error) {
+        console.error('Błąd pobierania informacji o użytkowniku:', error);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+};
+
+
+
+export const getUserByToken = async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id); // authMiddleware
+      if (!user) return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony" });
+      res.status(200).json({ success: true, data: user });
+    } catch (error) {
+      console.error("Błąd pobierania danych użytkownika", error.message);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+
 export const updateUser = async (req, res) => {
     const {id} = req.params;
     const user = req.body;

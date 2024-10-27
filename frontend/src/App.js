@@ -1,9 +1,12 @@
+// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import LoggedNavbar from './components/LoggedNavbar'; // Nowy navbar dla zalogowanych użytkowników
 import ProtectedRoute from './components/ProtectedRoute';
+import { getUserInfo } from './utils/getUserInfo'; // Import funkcji getUserInfo
 
-// Zaktualizowane importy stron
+// Updated imports of pages
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ProjectPage from './pages/ProjectPage';
@@ -14,20 +17,27 @@ import LoggedPotDetails from './pages/LoggedPotDetails';
 import LoggedCombinedHistory from './pages/LoggedCombinedHistory';
 import LoggedPotHistory from './pages/LoggedPotHistory';
 import LoggedAccountSettings from './pages/LoggedAccountSettings';
+import LoggedAddPotPage from './pages/LoggedAddPotPage';
 
 function App() {
+  // Sprawdzenie, czy użytkownik jest zalogowany na podstawie obecności tokena
+  const userInfo = getUserInfo();
+  const isLoggedIn = userInfo !== null;
+
   return (
     <Router>
-      <Navbar />
+      {/* Renderowanie odpowiedniego Navbara */}
+      {isLoggedIn ? <LoggedNavbar userInfo={userInfo} /> : <Navbar />}
+      
       <Routes>
-        {/* Publiczne ścieżki */}
+        {/* Public paths */}
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/project" element={<ProjectPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Ścieżki chronione */}
+        {/* Protected paths */}
         <Route
           path="/dashboard"
           element={
@@ -65,6 +75,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LoggedAccountSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-pot"
+          element={
+            <ProtectedRoute>
+              <LoggedAddPotPage />
             </ProtectedRoute>
           }
         />

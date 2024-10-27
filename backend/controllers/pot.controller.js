@@ -1,10 +1,10 @@
 import Pot from '../models/Pot.js';
-import User from '../models/User.js'
+import User from '../models/User.js';
 import mongoose from 'mongoose';
 
 // Pobierz wszystkie doniczki dla konkretnego użytkownika
 export const getPotsByUser = async (req, res) => {
-    const {userId} = req.params;
+    const userId = req.userId; // Pobierz userId z authMiddleware
 
     try {
         const pots = await Pot.find({ owner: userId });
@@ -15,9 +15,45 @@ export const getPotsByUser = async (req, res) => {
     }
 };
 
+const getSoilMoistureFromSensor = async (potId) => {
+    // Przykładowa wartość
+    return Math.floor(Math.random() * 100); // Wilgotność gleby w zakresie 0-100%
+};
+
+export const getSoilMoisture = async (req, res) => {
+    const userId = req.userId; // Pobierz userId z authMiddleware
+    const { potId } = req.params;
+
+    try {
+        const pot = await Pot.findOne({ _id: potId, owner: userId });
+        if (!pot) {
+            return res.status(404).json({ success: false, message: 'Doniczka nie została znaleziona' });
+        }
+
+        // Pobierz wilgotność gleby
+        const soilMoisture = await getSoilMoistureFromSensor(potId);
+
+        // Dodaj nowy wpis do historii podlewania z wilgotnością gleby
+        const newHistoryEntry = {
+            date: new Date(),
+            waterAmount: 0, // W tym przypadku wilgotność gleby, więc brak wody
+            soilMoisture,
+        };
+
+        pot.wateringHistory.push(newHistoryEntry);
+        await pot.save();
+
+        res.status(200).json({ success: true, soilMoisture });
+    } catch (error) {
+        console.error("Błąd podczas pobierania wilgotności gleby", error.message);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
 // Pobieranie konkretnej doniczki użytkownika
 export const getPotById = async (req, res) => {
-    const {userId, potId} = req.params;
+    const userId = req.userId; // Pobierz userId z authMiddleware
+    const { potId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(potId)) {
         return res.status(404).json({ success: false, message: "Nie ma doniczki o takim Id" });
@@ -25,9 +61,9 @@ export const getPotById = async (req, res) => {
 
     try {
         const pot = await Pot.findOne({ _id: potId, owner: userId });
-        if (!pot){
+        if (!pot) {
             return res.status(404).json({ success: false, message: "Doniczka nie znaleziona" });
-        } 
+        }
         res.status(200).json({ success: true, data: pot });
     } catch (error) {
         console.error("Błąd pobierania doniczki", error.message);
@@ -35,38 +71,62 @@ export const getPotById = async (req, res) => {
     }
 };
 
-// Utwórz nowej doniczki dla konkretnego użytkownika
-export const createPot = async (req, res) => {
-    const { userId } = req.params;
-    const potData = req.body;
+// Utwórz nową doniczkę dla konkretnego użytkownika
+export const addPot = async (req, res) => {
+    const {
+        potName,
+        flowerName,
+        waterAmount,
+        wateringFrequency,
+        potSize,
+        shape,
+        dimensions,
+        otherParams,
+    } = req.body;
+
+    // Sprawdzenie czy wymagane pola zostały podane
+    if (
+        !potName ||
+        !flowerName ||
+        !waterAmount ||
+        !wateringFrequency ||
+        !potSize ||
+        !shape ||
+        !dimensions.height ||
+        (shape === 'Prostopadłościan' && (!dimensions.width || !dimensions.depth)) ||
+        (shape === 'Walec' && !dimensions.diameter)
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Proszę wypełnić wszystkie wymagane pola.",
+        });
+    }
 
     try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony" });
-        }
-
-        // Tworzenie nowej doniczki i przypisanie userId do pola owner
         const newPot = new Pot({
-            ...potData,
-            owner: userId // Przypisanie właściciela doniczki
+            potName,
+            flowerName,
+            waterAmount,
+            wateringFrequency,
+            potSize,
+            shape,
+            dimensions,
+            otherParams,
+            owner: req.userId, // ID zalogowanego użytkownika z tokena
         });
 
         await newPot.save();
-
-        user.pots.push(newPot._id); // Dodajemy referencję do doniczki u użytkownika
-        await user.save();
-
         res.status(201).json({ success: true, data: newPot });
     } catch (error) {
-        console.error("Problem z utworzeniem doniczki", error.message);
-        res.status(500).json({ success: false, message: "Server error" });
+        console.error("Błąd dodawania doniczki:", error.message);
+        res.status(500).json({ success: false, message: "Błąd serwera podczas dodawania doniczki." });
     }
 };
 
 // Aktualizacja doniczki użytkownika
 export const updatePot = async (req, res) => {
-    const {userId, potId} = req.params;
+    const userId = req.userId; // Pobierz userId z authMiddleware
+    const { potId } = req.params;
     const potData = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(potId)) {
@@ -89,7 +149,8 @@ export const updatePot = async (req, res) => {
 
 // Usuwanie doniczki użytkownika
 export const deletePot = async (req, res) => {
-    const { userId, potId } = req.params;
+    const userId = req.userId; // Pobierz userId z authMiddleware
+    const { potId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(potId)) {
         return res.status(404).json({ success: false, message: "Nie ma doniczki o takim Id" });
@@ -102,14 +163,7 @@ export const deletePot = async (req, res) => {
             return res.status(404).json({ success: false, message: "Doniczka nie znaleziona" });
         }
 
-        // Usunięcie referencji do doniczki z pola pots użytkownika
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { $pull: { pots: potId } }, // Usunięcie odniesienia do doniczki
-            { new: true }
-        );
-
-        res.status(200).json({ success: true, message: `Doniczka o id: ${potId} usunięta, odniesienie również usunięte z użytkownika` });
+        res.status(200).json({ success: true, message: `Doniczka o id: ${potId} usunięta` });
     } catch (error) {
         console.error("Nie można usunąć doniczki", error.message);
         res.status(500).json({ success: false, message: "Server error" });
