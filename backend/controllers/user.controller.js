@@ -32,22 +32,24 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// src/controllers/userController.js
-
-export const getUserInfo = async (req, res) => {
-    try {
-        // Sprawdza czy req.userId istnieje (dzięki middleware)
-        if (!req.userId) {
-            return res.status(400).json({ success: false, message: 'Nie znaleziono użytkownika' });
-        }
-
-        // Zwraca tylko id użytkownika
-        res.status(200).json({ success: true, data: { id: req.userId } });
-    } catch (error) {
-        console.error('Błąd pobierania informacji o użytkowniku:', error);
-        res.status(500).json({ success: false, message: 'Błąd serwera' });
+export const getUserInfo = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwt_decode(token);
+        return {
+          id: decoded.id,
+          email: decoded.email,
+          firstName: decoded.firstName,
+          lastName: decoded.lastName,
+        };
+      } catch (error) {
+        console.error("Błąd dekodowania tokena:", error);
+        return null;
+      }
     }
-};
+    return null;
+  };
 
 
 

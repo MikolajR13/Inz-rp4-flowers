@@ -23,6 +23,7 @@ const LoginPage = () => {
         // Jeśli logowanie jest poprawne, zapisz token i przekieruj użytkownika
         localStorage.setItem('token', data.token);
         navigate('/dashboard'); // Przekierowanie na stronę użytkownika po zalogowaniu
+        window.location.reload();
       } else {
         setErrorMessage(data.message);
       }

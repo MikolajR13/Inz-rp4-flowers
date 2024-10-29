@@ -23,6 +23,7 @@ import EditPot from './pages/EditPot';
 function App() {
   // Sprawdzenie, czy użytkownik jest zalogowany na podstawie obecności tokena
   const userInfo = getUserInfo();
+  console.log(userInfo);
   const isLoggedIn = userInfo !== null;
 
   return (
