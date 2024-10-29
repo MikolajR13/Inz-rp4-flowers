@@ -1,8 +1,6 @@
 import express from "express"
 import { connectDb } from "./DataBase/mongodb.js";
 import dotenv from "dotenv";
-import User from "./models/User.js";
-import mongoose from "mongoose";
 import userRoutes from "./routes/user.route.js";
 import potRoutes from "./routes/pot.route.js";
 import historyRoutes from "./routes/history.route.js";

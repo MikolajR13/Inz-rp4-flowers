@@ -16,14 +16,15 @@ export const getUser = async (req, res) =>{
 }
 
 export const getUserById = async (req, res) => {
-    const { id } = req.params;
+    const userId = req.user.id; 
+    console.log("id:", userId)
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(404).json({ success: false, message: "Nie ma użytkownika o takim Id" });
     }
 
     try {
-        const user = await User.findById(id);
+        const user = await User.findById(userId);
         if (!user) return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony" });
         res.status(200).json({ success: true, data: user });
     } catch (error) {
@@ -31,27 +32,6 @@ export const getUserById = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
-export const getUserInfo = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwt_decode(token);
-        return {
-          id: decoded.id,
-          email: decoded.email,
-          firstName: decoded.firstName,
-          lastName: decoded.lastName,
-        };
-      } catch (error) {
-        console.error("Błąd dekodowania tokena:", error);
-        return null;
-      }
-    }
-    return null;
-  };
-
-
 
 export const getUserByToken = async (req, res) => {
     try {
@@ -64,23 +44,21 @@ export const getUserByToken = async (req, res) => {
     }
   };
 
-export const updateUser = async (req, res) => {
-    const {id} = req.params;
-    const user = req.body;
-    
-    if(!mongoose.Types.ObjectId.isValid(id))
-    {
-        return res.status(404).json({success: false, message: "Nie ma użytkownika o takim Id"});
-    }
-
+  export const updateUser = async (req, res) => {
+    const userId = req.user.id; 
+    const userDataToUpdate = req.body;
+  
     try {
-        const updatedUser = await User.findByIdAndUpdate(id, user, {new:true});
-        res.status(200).json({success: true, message: `User with userId: ${id} updated`})
+      const updatedUser = await User.findByIdAndUpdate(userId, userDataToUpdate, { new: true });
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony" });
+      }
+      res.status(200).json({ success: true, message: "Dane użytkownika zostały zaktualizowane", data: updatedUser });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Błąd serewera"});
-
+      console.error("Błąd serwera:", error.message);
+      res.status(500).json({ success: false, message: "Błąd serwera" });
     }
-}
+  };
 
 export const deleteUser = async (req, res) => {
     const {id} = req.params
@@ -97,7 +75,6 @@ export const deleteUser = async (req, res) => {
     } catch(error) {
         console.log("Nie można usunąć użytkownika", error.message);
         res.status(500).json( { success: false, message:"Server Error"});
-        
     }
 }
 

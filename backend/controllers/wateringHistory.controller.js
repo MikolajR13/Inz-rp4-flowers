@@ -53,7 +53,7 @@ export const getWateringHistoryById = async (req, res) => {
 };
 
 export const getAllWateringHistoryForUser = async (req, res) => {
-    const userId = req.userId;
+    const userId = req.user.id;;
     const { page = 1, limit = 25 } = req.query; 
 
     try {

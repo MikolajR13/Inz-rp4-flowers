@@ -27,7 +27,7 @@ export const authMiddleware = (req, res, next) => {
         // Logowanie zdekodowanego tokena
         console.log('Zdekodowany token:', decoded);
         
-        req.userId = decoded.id;
+        req.user = { id: decoded.id };
         console.log('userId', decoded.id); 
         next();
     } catch (error) {

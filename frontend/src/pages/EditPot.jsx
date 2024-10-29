@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Button, Form, FormField, TextInput, Select, Heading, Text } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -13,45 +13,51 @@ const EditPot = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showOverrideButton, setShowOverrideButton] = useState(false);
   const [isWaterLimitIgnored, setIsWaterLimitIgnored] = useState(false);
+  const [waterLimit, setWaterLimit] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPotDetails = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setFormData(data.data);
+  const fetchPotDetails = useCallback(async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Błąd podczas pobierania szczegółów doniczki:', error);
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFormData(data.data);
       }
-    };
-
-    fetchPotDetails();
+    } catch (error) {
+      console.error('Błąd podczas pobierania szczegółów doniczki:', error);
+    }
   }, [potId]);
 
-  const calculateWaterLimit = () => {
-    const { height, width, depth, diameter } = formData.dimensions;
+  useEffect(() => {
+    fetchPotDetails();
+  }, [fetchPotDetails]);
+
+  const calculateWaterLimit = useCallback(() => {
+    const { height, width, depth, diameter } = formData?.dimensions || {};
     let volume;
 
-    if (formData.shape === 'cuboid' && height && width && depth) {
+    if (formData?.shape === 'cuboid' && height && width && depth) {
       volume = height * width * depth;
-    } else if (formData.shape === 'cylinder' && height && diameter) {
+    } else if (formData?.shape === 'cylinder' && height && diameter) {
       volume = Math.PI * Math.pow(diameter / 2, 2) * height;
     }
 
     return volume ? (volume * 2) / 5 : null;
-  };
+  }, [formData]);
+
+  useEffect(() => {
+    if (formData) {
+      setWaterLimit(calculateWaterLimit());
+    }
+  }, [formData, calculateWaterLimit]);
 
   const handleWaterAmountChange = (value) => {
     const waterAmount = parseInt(value, 10);
-    const waterLimit = calculateWaterLimit();
 
     if (isNaN(waterAmount)) {
       setFormData({ ...formData, waterAmount: '' });
@@ -65,6 +71,11 @@ const EditPot = () => {
     }
 
     setFormData({ ...formData, waterAmount });
+  };
+
+  const handleOverrideLimit = () => {
+    setIsWaterLimitIgnored(true);
+    setShowOverrideButton(false);
   };
 
   const handleSubmit = async (event) => {
@@ -177,7 +188,7 @@ const EditPot = () => {
                 <Text color="status-critical">Przekroczono limit wody! Możliwe przelanie rośliny.</Text>
                 <Button
                   label="Zignoruj Limit"
-                  onClick={() => setIsWaterLimitIgnored(true)}
+                  onClick={handleOverrideLimit}
                   margin={{ top: 'small' }}
                 />
               </Box>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Tip, Grid, Grommet } from 'grommet';
+import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Grid, Grommet } from 'grommet';
 import { useNavigate } from 'react-router-dom';
-import { Help } from 'grommet-icons';
 
 const theme = {
   global: {
@@ -9,21 +8,9 @@ const theme = {
       'custom-dark-green': '#006400',
       'custom-cancel': '#FF4040'
     }
-  },
-  tip: {
-    content: {
-      background: 'white',
-      border: { color: 'custom-dark-green' },
-      pad: 'small',
-      elevation: 'small'
-    },
-    plain: {
-      color: 'custom-dark-green',
-    },
-  },
+  }
 };
 
-// Opcje w języku polskim
 const shapeOptions = [
   { label: 'Prostopadłościan', value: 'cuboid' },
   { label: 'Walec', value: 'cylinder' }
@@ -37,7 +24,7 @@ const LoggedAddPotPage = () => {
     waterAmount: '',
     wateringFrequency: '',
     potSize: '',
-    shape: 'cuboid', // Domyślnie ustawiamy na "cuboid"
+    shape: 'cuboid',
     dimensions: {
       height: '',
       width: '',
@@ -67,22 +54,29 @@ const LoggedAddPotPage = () => {
     return volume ? (volume * 2) / 5 : null;
   };
 
-  const handleWaterAmountChange = (value) => {
-    const waterAmount = parseInt(value, 10);
-
-    if (isNaN(waterAmount)) {
-      setFormData({ ...formData, waterAmount: '' });
-      setWaterLimitExceeded(false);
-      return;
-    }
-
+  const checkWaterLimit = () => {
     const waterLimit = calculateWaterLimit();
-    setFormData({ ...formData, waterAmount });
+    const waterAmount = parseInt(formData.waterAmount, 10);
+
     if (waterLimit && waterAmount > waterLimit && !ignoreWaterLimit) {
       setWaterLimitExceeded(true);
     } else {
       setWaterLimitExceeded(false);
     }
+  };
+
+  const handleWaterAmountChange = (value) => {
+    const waterAmount = parseInt(value, 10);
+    setFormData({ ...formData, waterAmount: isNaN(waterAmount) ? '' : waterAmount });
+    checkWaterLimit();
+  };
+
+  const handleDimensionChange = (dimension, value) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      dimensions: { ...prevData.dimensions, [dimension]: parseInt(value, 10) || '' }
+    }));
+    checkWaterLimit();
   };
 
   const validateForm = () => {
@@ -93,11 +87,6 @@ const LoggedAddPotPage = () => {
 
     if (!Number.isInteger(parseInt(formData.waterAmount)) || !Number.isInteger(parseInt(formData.wateringFrequency))) {
       setErrorMessage('Ilość wody i częstotliwość podlewania muszą być liczbami całkowitymi.');
-      return false;
-    }
-
-    if (typeof formData.potName !== 'string' || typeof formData.flowerName !== 'string' || typeof formData.potSize !== 'string') {
-      setErrorMessage('Niektóre pola muszą zawierać tekst.');
       return false;
     }
 
@@ -165,16 +154,28 @@ const LoggedAddPotPage = () => {
           <Form onSubmit={handleSubmit}>
             <Grid columns={['flex', 'flex']} gap="medium">
               <Box>
-                <FormField label={<Box direction="row" gap="small" align="center"><Text>Nazwa Doniczki</Text><Tip content="Wprowadź unikalną nazwę dla swojej doniczki."><Help size="small" /></Tip></Box>}>
-                  <TextInput placeholder="Wprowadź nazwę doniczki" value={formData.potName} onChange={(e) => setFormData({ ...formData, potName: e.target.value })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                <FormField label="Nazwa Doniczki">
+                  <TextInput
+                    placeholder="Wprowadź nazwę doniczki"
+                    value={formData.potName}
+                    onChange={(e) => setFormData({ ...formData, potName: e.target.value })}
+                  />
                 </FormField>
 
-                <FormField label={<Box direction="row" gap="small" align="center"><Text>Nazwa Kwiatka</Text><Tip content="Wprowadź nazwę kwiatka."><Help size="small" /></Tip></Box>}>
-                  <TextInput placeholder="Wprowadź nazwę kwiatka" value={formData.flowerName} onChange={(e) => setFormData({ ...formData, flowerName: e.target.value })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                <FormField label="Nazwa Kwiatka">
+                  <TextInput
+                    placeholder="Wprowadź nazwę kwiatka"
+                    value={formData.flowerName}
+                    onChange={(e) => setFormData({ ...formData, flowerName: e.target.value })}
+                  />
                 </FormField>
 
-                <FormField label={<Box direction="row" gap="small" align="center"><Text>Ilość Wody (ml)</Text><Tip content="Podaj ilość wody w ml."><Help size="small" /></Tip></Box>}>
-                  <TextInput placeholder="Ilość wody do podlania" value={formData.waterAmount} onChange={(e) => handleWaterAmountChange(e.target.value)} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                <FormField label="Ilość Wody (ml)">
+                  <TextInput
+                    placeholder="Ilość wody do podlania"
+                    value={formData.waterAmount}
+                    onChange={(e) => handleWaterAmountChange(e.target.value)}
+                  />
                 </FormField>
 
                 {waterLimitExceeded && !ignoreWaterLimit && (
@@ -189,7 +190,11 @@ const LoggedAddPotPage = () => {
                     <Select options={unitOptions} placeholder="Wybierz jednostkę" value={unit} onChange={({ option }) => handleUnitSelect(option)} />
                   ) : (
                     <Box direction="row" gap="small" align="center">
-                      <TextInput placeholder={`Podaj wartość w ${unit.toLowerCase()}`} value={formData.wateringFrequency} onChange={(e) => setFormData({ ...formData, wateringFrequency: e.target.value })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder={`Podaj wartość w ${unit.toLowerCase()}`}
+                        value={formData.wateringFrequency}
+                        onChange={(e) => setFormData({ ...formData, wateringFrequency: e.target.value })}
+                      />
                       <Button label="Anuluj" color="custom-cancel" onClick={handleCancelFrequencyInput} />
                     </Box>
                   )}
@@ -197,11 +202,15 @@ const LoggedAddPotPage = () => {
               </Box>
 
               <Box>
-                <FormField label={<Box direction="row" gap="small" align="center"><Text>Rozmiar Doniczki</Text><Tip content="Podaj rozmiar doniczki."><Help size="small" /></Tip></Box>}>
-                  <TextInput placeholder="Mała, Średnia, Duża" value={formData.potSize} onChange={(e) => setFormData({ ...formData, potSize: e.target.value })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                <FormField label="Rozmiar Doniczki">
+                  <TextInput
+                    placeholder="Mała, Średnia, Duża"
+                    value={formData.potSize}
+                    onChange={(e) => setFormData({ ...formData, potSize: e.target.value })}
+                  />
                 </FormField>
 
-                <FormField label={<Box direction="row" gap="small" align="center"><Text>Kształt Doniczki</Text><Tip content="Wybierz kształt doniczki."><Help size="small" /></Tip></Box>}>
+                <FormField label="Kształt Doniczki">
                   <Select
                     options={shapeOptions}
                     labelKey="label"
@@ -214,13 +223,25 @@ const LoggedAddPotPage = () => {
                 {formData.shape === 'cuboid' && (
                   <>
                     <FormField label="Wysokość (cm)">
-                      <TextInput placeholder="Wysokość" value={formData.dimensions.height} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder="Wysokość"
+                        value={formData.dimensions.height}
+                        onChange={(e) => handleDimensionChange('height', e.target.value)}
+                      />
                     </FormField>
                     <FormField label="Szerokość (cm)">
-                      <TextInput placeholder="Szerokość" value={formData.dimensions.width} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder="Szerokość"
+                        value={formData.dimensions.width}
+                        onChange={(e) => handleDimensionChange('width', e.target.value)}
+                      />
                     </FormField>
                     <FormField label="Głębokość (cm)">
-                      <TextInput placeholder="Głębokość" value={formData.dimensions.depth} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, depth: e.target.value } })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder="Głębokość"
+                        value={formData.dimensions.depth}
+                        onChange={(e) => handleDimensionChange('depth', e.target.value)}
+                      />
                     </FormField>
                   </>
                 )}
@@ -228,10 +249,18 @@ const LoggedAddPotPage = () => {
                 {formData.shape === 'cylinder' && (
                   <>
                     <FormField label="Wysokość (cm)">
-                      <TextInput placeholder="Wysokość" value={formData.dimensions.height} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder="Wysokość"
+                        value={formData.dimensions.height}
+                        onChange={(e) => handleDimensionChange('height', e.target.value)}
+                      />
                     </FormField>
                     <FormField label="Średnica (cm)">
-                      <TextInput placeholder="Średnica" value={formData.dimensions.diameter} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, diameter: e.target.value } })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                      <TextInput
+                        placeholder="Średnica"
+                        value={formData.dimensions.diameter}
+                        onChange={(e) => handleDimensionChange('diameter', e.target.value)}
+                      />
                     </FormField>
                   </>
                 )}

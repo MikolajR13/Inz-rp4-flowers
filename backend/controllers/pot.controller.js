@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 // Pobierz wszystkie doniczki dla konkretnego użytkownika
 export const getPotsByUser = async (req, res) => {
-    const userId = req.userId; // Pobierz userId z authMiddleware
+    const userId = req.user.id; // Pobierz userId z authMiddleware
 
     try {
         const pots = await Pot.find({ owner: userId });
@@ -21,7 +21,7 @@ const getSoilMoistureFromSensor = async (potId) => {
 };
 
 export const getSoilMoisture = async (req, res) => {
-    const userId = req.userId; // Pobierz userId z authMiddleware
+    const userId = req.user.id; // Pobierz userId z authMiddleware
     const { potId } = req.params;
 
     try {
@@ -52,7 +52,7 @@ export const getSoilMoisture = async (req, res) => {
 
 // Pobieranie konkretnej doniczki użytkownika
 export const getPotById = async (req, res) => {
-    const userId = req.userId; // Pobierz userId z authMiddleware
+    const userId = req.user.id; // Pobierz userId z authMiddleware
     const { potId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(potId)) {
@@ -111,12 +111,12 @@ export const addPot = async (req, res) => {
             shape,
             dimensions,
             otherParams,
-            owner: req.userId,
+            owner: req.user.id,
         });
 
         await newPot.save();
 
-        await User.findByIdAndUpdate(req.userId, {
+        await User.findByIdAndUpdate(req.user.id, {
             $push: { pots: newPot._id }
         });
 
@@ -129,7 +129,7 @@ export const addPot = async (req, res) => {
 
 // Aktualizacja doniczki użytkownika
 export const updatePot = async (req, res) => {
-    const userId = req.userId; // Pobierz userId z authMiddleware
+    const userId = req.user.id;; // Pobierz userId z authMiddleware
     const { potId } = req.params;
     const potData = req.body;
 
@@ -153,7 +153,7 @@ export const updatePot = async (req, res) => {
 
 // Usuwanie doniczki użytkownika
 export const deletePot = async (req, res) => {
-    const userId = req.userId; // Pobierz userId z authMiddleware
+    const userId = req.user.id; // Pobierz userId z authMiddleware
     const { potId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(potId)) {

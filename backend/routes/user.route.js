@@ -1,5 +1,5 @@
 import express from "express";
-import { createUser, deleteUser, getUser, updateUser, getUserById, getUserByToken, getUserInfo } from "../controllers/user.controller.js";
+import { createUser, deleteUser, getUser, updateUser, getUserById, getUserByToken } from "../controllers/user.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { loginUser } from "../controllers/auth.controller.js";
 
@@ -12,6 +12,5 @@ router.post("/", createUser); // Tworzenie nowego użytkownika
 router.delete("/me",authMiddleware, deleteUser); // Usuwanie użytkownika po ID
 router.post("/login", loginUser);
 router.get("/me", authMiddleware, getUserByToken);
-router.get('/me/info', authMiddleware, getUserInfo);
 
 export default router;
