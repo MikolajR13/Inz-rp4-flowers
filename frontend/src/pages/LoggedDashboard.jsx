@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Heading, Grid, Text, Image, Card, CardBody, Button } from 'grommet';
+import React, { useState, useEffect } from 'react';
+import { Box, Heading, Grid, Text, Image, Card, CardBody, Button, Layer } from 'grommet';
 import { useNavigate } from 'react-router-dom';
-
-// Ikona doniczki oraz ikona dodawania nowej doniczki
 import potIcon from '../assets/pot.png'; // Ikona doniczki
 import addIcon from '../assets/add.png'; // Ikona dodania nowej doniczki
 
 const LoggedDashboard = () => {
   const [pots, setPots] = useState([]);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [potToDelete, setPotToDelete] = useState(null);
   const navigate = useNavigate();
 
-  // Pobieranie doniczek użytkownika z backendu
   useEffect(() => {
     const fetchPots = async () => {
       try {
@@ -33,7 +32,6 @@ const LoggedDashboard = () => {
     fetchPots();
   }, []);
 
-  // Funkcja sprawdzania wilgotności gleby
   const handleCheckSoilMoisture = async (potId) => {
     try {
       const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
@@ -52,6 +50,25 @@ const LoggedDashboard = () => {
     }
   };
 
+  const handleDeletePot = async (potId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPots(pots.filter(pot => pot._id !== potId));
+        setShowConfirmDelete(false);
+      }
+    } catch (error) {
+      console.error('Błąd podczas usuwania doniczki:', error);
+    }
+  };
+
   return (
     <Box fill align="center" justify="start" pad="small" background="light-2">
       <Heading level="2" color="brand" alignSelf="center" margin={{ vertical: 'small' }}>Moje Doniczki</Heading>
@@ -61,24 +78,49 @@ const LoggedDashboard = () => {
         justifyContent="center"
         margin={{ top: 'small' }}
       >
-        {/* Wyświetlanie kafelków dla każdej doniczki */}
         {pots.map((pot) => (
-          <Card key={pot._id} background="light-1" pad="medium" hoverIndicator>
+          <Card
+            key={pot._id}
+            background="light-1"
+            pad="medium"
+            hoverIndicator
+            onClick={() => navigate(`/pot/${pot._id}`)} 
+          >
             <CardBody align="center">
               <Image src={potIcon} alt="Pot icon" width="70px" height="70px" margin={{ bottom: 'small' }} />
-              <Text size="large" color="dark-3" margin={{ bottom: 'small' }}>{pot.name}</Text>
+              <Text size="large" color="dark-3" margin={{ bottom: 'small' }}>{pot.potName}</Text>
               <Text size="medium" color="dark-4">Kwiat: {pot.flowerName}</Text>
               <Text size="small" color="dark-4">Ostatnie podlewanie: {new Date(pot.lastWateredDate).toLocaleDateString()}</Text>
+              <Box direction="row" gap="small" margin={{ top: 'small' }}>
+                <Button
+                  label="Usuń Doniczkę"
+                  color="status-critical"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPotToDelete(pot);
+                    setShowConfirmDelete(true);
+                  }}
+                />
+                <Button
+                  label="Historia Podlewania"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/pot-history/${pot._id}`);
+                  }}
+                />
+              </Box>
               <Button
                 label="Sprawdź wilgotność gleby"
-                onClick={() => handleCheckSoilMoisture(pot._id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCheckSoilMoisture(pot._id);
+                }}
                 margin={{ top: 'small' }}
               />
             </CardBody>
           </Card>
         ))}
 
-        {/* Kafelek dodania nowej doniczki */}
         <Card background="light-1" pad="medium" hoverIndicator onClick={() => navigate('/add-pot')}>
           <CardBody align="center">
             <Image src={addIcon} alt="Add Pot" width="70px" height="70px" margin={{ bottom: 'small' }} />
@@ -86,6 +128,21 @@ const LoggedDashboard = () => {
           </CardBody>
         </Card>
       </Grid>
+
+      {showConfirmDelete && (
+        <Layer
+          onEsc={() => setShowConfirmDelete(false)}
+          onClickOutside={() => setShowConfirmDelete(false)}
+        >
+          <Box pad="medium" gap="small">
+            <Text>Czy na pewno chcesz usunąć doniczkę "{potToDelete.potName}"?</Text>
+            <Box direction="row" justify="between">
+              <Button label="Tak" onClick={() => handleDeletePot(potToDelete._id)} color="status-critical" />
+              <Button label="Anuluj" onClick={() => setShowConfirmDelete(false)} />
+            </Box>
+          </Box>
+        </Layer>
+      )}
     </Box>
   );
 };

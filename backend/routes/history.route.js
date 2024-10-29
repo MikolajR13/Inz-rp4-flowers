@@ -4,7 +4,8 @@ import {
   getWateringHistory,
   getWateringHistoryById,
   updateWateringHistory,
-  deleteWateringHistory
+  deleteWateringHistory,
+  getAllWateringHistoryForUser
 } from "../controllers/wateringHistory.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
@@ -15,6 +16,8 @@ router.get("/",authMiddleware, getWateringHistory);
 
 // Pobieranie konkretnego wpisu w historii podlewania
 router.get("/:historyId",authMiddleware, getWateringHistoryById);
+
+router.get("/all", authMiddleware, getAllWateringHistoryForUser);
 
 // Dodawanie nowego wpisu do historii podlewania dla danej doniczki
 router.post("/",authMiddleware, addWateringHistory);

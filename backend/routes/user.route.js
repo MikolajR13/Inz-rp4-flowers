@@ -6,10 +6,10 @@ import { loginUser } from "../controllers/auth.controller.js";
 const router = express.Router();
 
 router.get("/", getUser); // Pobieranie wszystkich użytkowników
-router.get("/:id",authMiddleware, getUserById); // Pobieranie konkretnego użytkownika po ID
-router.put("/:id",authMiddleware, updateUser); // Aktualizowanie użytkownika po ID
+router.get("/me",authMiddleware, getUserById); // Pobieranie konkretnego użytkownika po ID
+router.put("/me",authMiddleware, updateUser); // Aktualizowanie użytkownika po ID
 router.post("/", createUser); // Tworzenie nowego użytkownika
-router.delete("/:id",authMiddleware, deleteUser); // Usuwanie użytkownika po ID
+router.delete("/me",authMiddleware, deleteUser); // Usuwanie użytkownika po ID
 router.post("/login", loginUser);
 router.get("/me", authMiddleware, getUserByToken);
 router.get('/me/info', authMiddleware, getUserInfo);

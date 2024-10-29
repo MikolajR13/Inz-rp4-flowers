@@ -84,7 +84,6 @@ export const addPot = async (req, res) => {
         otherParams,
     } = req.body;
 
-    // Sprawdzenie czy wymagane pola zostały podane
     if (
         !potName ||
         !flowerName ||
@@ -112,10 +111,15 @@ export const addPot = async (req, res) => {
             shape,
             dimensions,
             otherParams,
-            owner: req.userId, // ID zalogowanego użytkownika z tokena
+            owner: req.userId,
         });
 
         await newPot.save();
+
+        await User.findByIdAndUpdate(req.userId, {
+            $push: { pots: newPot._id }
+        });
+
         res.status(201).json({ success: true, data: newPot });
     } catch (error) {
         console.error("Błąd dodawania doniczki:", error.message);
@@ -157,11 +161,14 @@ export const deletePot = async (req, res) => {
     }
 
     try {
-        // Usnięcie doniczki z kolekcji pots
         const deletedPot = await Pot.findOneAndDelete({ _id: potId, owner: userId });
         if (!deletedPot) {
             return res.status(404).json({ success: false, message: "Doniczka nie znaleziona" });
         }
+
+        await User.findByIdAndUpdate(userId, {
+            $pull: { pots: potId }
+        });
 
         res.status(200).json({ success: true, message: `Doniczka o id: ${potId} usunięta` });
     } catch (error) {

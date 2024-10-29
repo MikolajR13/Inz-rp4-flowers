@@ -18,6 +18,7 @@ import LoggedCombinedHistory from './pages/LoggedCombinedHistory';
 import LoggedPotHistory from './pages/LoggedPotHistory';
 import LoggedAccountSettings from './pages/LoggedAccountSettings';
 import LoggedAddPotPage from './pages/LoggedAddPotPage';
+import EditPot from './pages/EditPot';
 
 function App() {
   // Sprawdzenie, czy użytkownik jest zalogowany na podstawie obecności tokena
@@ -83,6 +84,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LoggedAddPotPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-pot/:potId"
+          element={
+            <ProtectedRoute>
+              <EditPot />
             </ProtectedRoute>
           }
         />

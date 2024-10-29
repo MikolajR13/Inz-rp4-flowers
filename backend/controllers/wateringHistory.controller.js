@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 // Pobieranie historii podlewania dla konkretnej doniczki
 export const getWateringHistory = async (req, res) => {
     const { potId } = req.params;
+    const { page = 1, limit = 25 } = req.query; // domyślne wartości dla paginacji
 
     try {
         const pot = await Pot.findById(potId);
@@ -12,8 +13,15 @@ export const getWateringHistory = async (req, res) => {
             return res.status(404).json({ success: false, message: "Doniczka nie znaleziona" });
         }
 
-        // Zwróc historię podlewania tej doniczki
-        res.status(200).json({ success: true, data: pot.wateringHistory });
+        const sortedHistory = pot.wateringHistory
+            .sort((a, b) => b.date - a.date)
+            .slice((page - 1) * limit, page * limit);
+
+        res.status(200).json({ 
+            success: true, 
+            data: sortedHistory, 
+            totalCount: pot.wateringHistory.length // dla totalnej liczby wpisów
+        });
     } catch (error) {
         console.error("Błąd pobierania historii podlewania", error.message);
         res.status(500).json({ success: false, message: "Server error" });
@@ -44,11 +52,39 @@ export const getWateringHistoryById = async (req, res) => {
     }
 };
 
+export const getAllWateringHistoryForUser = async (req, res) => {
+    const userId = req.userId;
+    const { page = 1, limit = 25 } = req.query; 
+
+    try {
+        const pots = await Pot.find({ owner: userId });
+        if (!pots.length) {
+            return res.status(404).json({ success: false, message: "Brak doniczek dla tego użytkownika" });
+        }
+
+        const allWateringHistory = pots
+            .flatMap(pot => pot.wateringHistory)
+            .sort((a, b) => b.date - a.date);
+
+        const paginatedHistory = allWateringHistory.slice((page - 1) * limit, page * limit);
+
+        res.status(200).json({ 
+            success: true, 
+            data: paginatedHistory, 
+            totalCount: allWateringHistory.length 
+        });
+    } catch (error) {
+        console.error("Błąd pobierania historii podlewania dla wszystkich doniczek", error.message);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
 
 // Dodanie nowego podlania do historii
 export const addWateringHistory = async (req, res) => {
     const { potId } = req.params;
     const { waterAmount } = req.body;
+    const { soilMoisture } = req.body
 
     try {
         const pot = await Pot.findById(potId);
@@ -59,7 +95,9 @@ export const addWateringHistory = async (req, res) => {
         // Utworzenie nowego wpisu w historii podlewania
         const newWatering = {
             date: new Date(),
-            waterAmount: waterAmount
+            waterAmount: waterAmount,
+            soilMoisture: soilMoisture
+
         };
 
         // Dodanie nowego wpisu do pola wateringHistory

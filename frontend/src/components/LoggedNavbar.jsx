@@ -36,41 +36,22 @@ const LoggedNavbar = () => {
             color={getButtonColor('/history')}
           />
         </Link>
-        <Link to="/project">
+        <Link to="/account-settings">
           <Button
-            label="Projekt"
+            label="Ustawienia Konta"
             hoverIndicator
-            color={getButtonColor('/project')}
+            color={getButtonColor('/account-settings')}
           />
         </Link>
-        <a href="https://github.com/MikolajR13/Inz-rp4-flowers">
-          <Button label="GitHub" hoverIndicator color="brand" />
-        </a>
       </Box>
-      <Nav direction="row">
-        {userInfo ? (
-          <Box direction="row" align="center" gap="small">
-            <Text color="light-1">{`${userInfo.firstName} ${userInfo.lastName}`}</Text>
-            <Button label="Wyloguj" color="custom-cancel" onClick={handleLogout} />
-          </Box>
-        ) : (
-          <>
-            <Link to="/login">
-              <Button
-                label="Logowanie"
-                hoverIndicator
-                color={getButtonColor('/login')}
-              />
-            </Link>
-            <Link to="/register">
-              <Button
-                label="Rejestracja"
-                hoverIndicator
-                color={getButtonColor('/register')}
-              />
-            </Link>
-          </>
+
+      <Nav direction="row" align="center" gap="medium">
+        {userInfo && (
+          <Text color="light-1" margin={{ right: 'small' }}>
+            {`Zalogowany jako: ${userInfo.firstName} ${userInfo.lastName} (${userInfo.email})`}
+          </Text>
         )}
+        <Button label="Wyloguj" color="custom-cancel" onClick={handleLogout} />
       </Nav>
     </Header>
   );

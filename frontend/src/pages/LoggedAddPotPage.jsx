@@ -50,7 +50,40 @@ const LoggedAddPotPage = () => {
   const [frequencyInputVisible, setFrequencyInputVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [waterLimitExceeded, setWaterLimitExceeded] = useState(false);
+  const [ignoreWaterLimit, setIgnoreWaterLimit] = useState(false);
   const navigate = useNavigate();
+
+  const calculateWaterLimit = () => {
+    const { height, width, depth, diameter } = formData.dimensions;
+    let volume;
+
+    if (formData.shape === 'cuboid' && height && width && depth) {
+      volume = height * width * depth;
+    } else if (formData.shape === 'cylinder' && height && diameter) {
+      volume = Math.PI * Math.pow(diameter / 2, 2) * height;
+    }
+
+    return volume ? (volume * 2) / 5 : null;
+  };
+
+  const handleWaterAmountChange = (value) => {
+    const waterAmount = parseInt(value, 10);
+
+    if (isNaN(waterAmount)) {
+      setFormData({ ...formData, waterAmount: '' });
+      setWaterLimitExceeded(false);
+      return;
+    }
+
+    const waterLimit = calculateWaterLimit();
+    setFormData({ ...formData, waterAmount });
+    if (waterLimit && waterAmount > waterLimit && !ignoreWaterLimit) {
+      setWaterLimitExceeded(true);
+    } else {
+      setWaterLimitExceeded(false);
+    }
+  };
 
   const validateForm = () => {
     if (!formData.potName || !formData.flowerName || !formData.waterAmount || !formData.wateringFrequency || !formData.potSize) {
@@ -120,6 +153,8 @@ const LoggedAddPotPage = () => {
       shape: selectedOption.value,
       dimensions: { height: '', width: '', depth: '', diameter: '' }
     });
+    setIgnoreWaterLimit(false);
+    setWaterLimitExceeded(false);
   };
 
   return (
@@ -139,8 +174,15 @@ const LoggedAddPotPage = () => {
                 </FormField>
 
                 <FormField label={<Box direction="row" gap="small" align="center"><Text>Ilość Wody (ml)</Text><Tip content="Podaj ilość wody w ml."><Help size="small" /></Tip></Box>}>
-                  <TextInput placeholder="Ilość wody do podlania" value={formData.waterAmount} onChange={(e) => setFormData({ ...formData, waterAmount: e.target.value })} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
+                  <TextInput placeholder="Ilość wody do podlania" value={formData.waterAmount} onChange={(e) => handleWaterAmountChange(e.target.value)} style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }} />
                 </FormField>
+
+                {waterLimitExceeded && !ignoreWaterLimit && (
+                  <Box pad="small" background="status-error" align="center">
+                    <Text color="white">Przekroczono limit wody! Możliwe przelanie rośliny.</Text>
+                    <Button label="Zignoruj Limit" onClick={() => setIgnoreWaterLimit(true)} color="light-1" />
+                  </Box>
+                )}
 
                 <FormField label="Jednostka Czasu Podlewania">
                   {!frequencyInputVisible ? (
