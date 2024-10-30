@@ -1,6 +1,7 @@
 import WateringHistory from '../models/WateringHistory.js';
 import Pot from '../models/Pot.js';
 import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 // Pobieranie historii podlewania dla konkretnej doniczki
 export const getWateringHistory = async (req, res) => {
@@ -52,21 +53,31 @@ export const getWateringHistoryById = async (req, res) => {
     }
 };
 
+
 export const getAllWateringHistoryForUser = async (req, res) => {
-    const userId = req.user.id;;
-    const { page = 1, limit = 25 } = req.query; 
+    const userId = req.user.id;
+    const { page = 1, limit = 25 } = req.query;
 
     try {
-        const pots = await Pot.find({ owner: userId });
-        if (!pots.length) {
+        const user = await User.findById(userId).populate('pots');
+        if (!user || user.pots.length === 0) {
             return res.status(404).json({ success: false, message: "Brak doniczek dla tego użytkownika" });
         }
 
-        const allWateringHistory = pots
-            .flatMap(pot => pot.wateringHistory)
-            .sort((a, b) => b.date - a.date);
+        const allWateringHistory = [];
+        for (const pot of user.pots) {
+            const potData = await Pot.findById(pot._id).lean();
+            if (potData && potData.wateringHistory) {
+                allWateringHistory.push(...potData.wateringHistory.map(entry => ({
+                    ...entry,
+                    potId: pot._id,
+                    potName: potData.potName  // Dodanie nazwy doniczki do każdego wpisu
+                })));
+            }
+        }
 
-        const paginatedHistory = allWateringHistory.slice((page - 1) * limit, page * limit);
+        const sortedHistory = allWateringHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const paginatedHistory = sortedHistory.slice((page - 1) * limit, page * limit);
 
         res.status(200).json({ 
             success: true, 
@@ -78,7 +89,6 @@ export const getAllWateringHistoryForUser = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
 
 // Dodanie nowego podlania do historii
 export const addWateringHistory = async (req, res) => {

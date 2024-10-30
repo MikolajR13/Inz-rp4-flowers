@@ -12,20 +12,20 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 const router = express.Router({ mergeParams: true });
 
 // Pobieranie całej historii podlewania dla danej doniczki
-router.get("/",authMiddleware, getWateringHistory);
+router.get("/pots/:potId/watering/",authMiddleware, getWateringHistory);
 
 // Pobieranie konkretnego wpisu w historii podlewania
-router.get("/:historyId",authMiddleware, getWateringHistoryById);
+router.get("/pots/:potId/watering/:historyId",authMiddleware, getWateringHistoryById);
 
-router.get("/all", authMiddleware, getAllWateringHistoryForUser);
+router.get('/watering-history', authMiddleware, getAllWateringHistoryForUser);
 
 // Dodawanie nowego wpisu do historii podlewania dla danej doniczki
-router.post("/",authMiddleware, addWateringHistory);
+router.post("/pots/:potId/watering/",authMiddleware, addWateringHistory);
 
 // Aktualizowanie konkretnego wpisu w historii podlewania
-router.put("/:historyId",authMiddleware, updateWateringHistory);
+router.put("/pots/:potId/watering/:historyId",authMiddleware, updateWateringHistory);
 
 // Usuwanie konkretnego wpisu w historii podlewania
-router.delete("/:historyId",authMiddleware, deleteWateringHistory);
+router.delete("/pots/:potId/watering/:historyId",authMiddleware, deleteWateringHistory);
 
 export default router;

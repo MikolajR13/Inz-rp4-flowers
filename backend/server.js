@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(cors());
 app.use("/api/users", userRoutes);  // Ścieżka użytkownika - główna
 app.use("/api/users/me/pots", potRoutes); // Ścieżka z doniczkami - powiązana z userId bo jest doniczki per user
-app.use("/api/users/me/pots/:potId/watering", historyRoutes); // Ścieżka związana z historią podlewania per doniczka - powiązana z potId bo jes historia podlewania per doniczka
+app.use("/api/users/me", historyRoutes); // Ścieżka związana z historią podlewania per doniczka - powiązana z potId bo jes historia podlewania per doniczka
 
 app.use(cors({
     origin: 'http://localhost:3000'
