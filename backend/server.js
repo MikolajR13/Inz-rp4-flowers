@@ -5,6 +5,8 @@ import userRoutes from "./routes/user.route.js";
 import potRoutes from "./routes/pot.route.js";
 import historyRoutes from "./routes/history.route.js";
 import cors from 'cors';
+import { checkAndWaterPots } from './mqttClient.js'
+import cron from 'node-cron';
 
 
 dotenv.config();
@@ -25,6 +27,7 @@ app.get("/", (req, res) => {
     res.send("Ready to work");
 });
 
+cron.schedule('* * * * *', checkAndWaterPots);
 
 app.listen(PORT, () => {
     connectDb();

@@ -91,7 +91,30 @@ export const getAllWateringHistoryForUser = async (req, res) => {
 };
 
 // Dodanie nowego podlania do historii
-export const addWateringHistory = async (req, res) => {
+export const addWateringHistoryForMqtt = async (potId, waterAmount, soilMoisture) => {
+    try {
+      const pot = await Pot.findById(potId);
+      if (!pot) {
+        console.error(`Doniczka o ID ${potId} nie została znaleziona`);
+        return;
+      }
+  
+      const newWatering = {
+        date: new Date(),
+        waterAmount: waterAmount,
+        soilMoisture: soilMoisture
+      };
+  
+      pot.wateringHistory.push(newWatering);
+      await pot.save();
+  
+      console.log(`[DEBUG] Dodano podlanie dla doniczki ${potId}: Woda = ${waterAmount}, Wilgotność = ${soilMoisture}`);
+    } catch (error) {
+      console.error("Problem z dodaniem wpisu do historii podlewania", error.message);
+    }
+  };
+
+  export const addWateringHistory = async (req, res) => {
     const { potId } = req.params;
     const { waterAmount } = req.body;
     const { soilMoisture } = req.body
@@ -177,4 +200,9 @@ export const deleteWateringHistory = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
+export default {
+    getWateringHistory,
+    addWateringHistoryForMqtt,
+  };
 

@@ -1,6 +1,7 @@
 import Pot from '../models/Pot.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { sendPotListToUser } from '../mqttClient.js';
 
 // Pobierz wszystkie doniczki dla konkretnego użytkownika
 export const getPotsByUser = async (req, res) => {
@@ -113,6 +114,7 @@ export const addPot = async (req, res) => {
             otherParams,
             owner: req.user.id,
         });
+        const userId = req.user.id;
 
         await newPot.save();
 
@@ -121,6 +123,7 @@ export const addPot = async (req, res) => {
         });
 
         res.status(201).json({ success: true, data: newPot });
+        sendPotListToUser(userId);
     } catch (error) {
         console.error("Błąd dodawania doniczki:", error.message);
         res.status(500).json({ success: false, message: "Błąd serwera podczas dodawania doniczki." });
@@ -171,6 +174,7 @@ export const deletePot = async (req, res) => {
         });
 
         res.status(200).json({ success: true, message: `Doniczka o id: ${potId} usunięta` });
+        sendPotListToUser(userId);
     } catch (error) {
         console.error("Nie można usunąć doniczki", error.message);
         res.status(500).json({ success: false, message: "Server error" });

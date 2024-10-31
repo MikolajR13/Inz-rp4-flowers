@@ -7,6 +7,7 @@ dotenv.config();
 
 export const connectDb = async () => {
     try {
+        console.log(process.env.FLOWERS_DB_URI);
         const conn = await mongoose.connect(process.env.FLOWERS_DB_URI);
         console.log(`DataBase connected: ${conn.connection.host}`);
     } catch(error) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Grid, Grommet } from 'grommet';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,7 +39,32 @@ const LoggedAddPotPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [waterLimitExceeded, setWaterLimitExceeded] = useState(false);
   const [ignoreWaterLimit, setIgnoreWaterLimit] = useState(false);
+  const [potLimitReached, setPotLimitReached] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPotCount = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/users/me/pots', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          if (data.data.length >= 3) {
+            setPotLimitReached(true);
+            setErrorMessage('Osiągnięto maksymalną liczbę doniczek (3).');
+          }
+        }
+      } catch (error) {
+        setErrorMessage('Błąd podczas sprawdzania liczby doniczek.');
+      }
+    };
+
+    fetchPotCount();
+  }, []);
 
   const calculateWaterLimit = () => {
     const { height, width, depth, diameter } = formData.dimensions;
@@ -65,6 +90,17 @@ const LoggedAddPotPage = () => {
     }
   };
 
+  const handleUnitSelect = (nextUnit) => {
+    setUnit(nextUnit);
+    setFrequencyInputVisible(true);
+  };
+
+  const handleCancelFrequencyInput = () => {
+    setFrequencyInputVisible(false);
+    setUnit('');
+    setFormData({ ...formData, wateringFrequency: '' });
+  };
+
   const handleWaterAmountChange = (value) => {
     const waterAmount = parseInt(value, 10);
     setFormData({ ...formData, waterAmount: isNaN(waterAmount) ? '' : waterAmount });
@@ -77,6 +113,16 @@ const LoggedAddPotPage = () => {
       dimensions: { ...prevData.dimensions, [dimension]: parseInt(value, 10) || '' }
     }));
     checkWaterLimit();
+  };
+
+  const handleShapeChange = (selectedOption) => {
+    setFormData({
+      ...formData,
+      shape: selectedOption.value,
+      dimensions: { height: '', width: '', depth: '', diameter: '' }
+    });
+    setIgnoreWaterLimit(false);
+    setWaterLimitExceeded(false);
   };
 
   const validateForm = () => {
@@ -93,21 +139,12 @@ const LoggedAddPotPage = () => {
     return true;
   };
 
-  const handleUnitSelect = (nextUnit) => {
-    setUnit(nextUnit);
-    setFrequencyInputVisible(true);
-  };
-
-  const handleCancelFrequencyInput = () => {
-    setFrequencyInputVisible(false);
-    setUnit('');
-    setFormData({ ...formData, wateringFrequency: '' });
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
+
+    if (potLimitReached) return;
 
     if (!validateForm()) return;
 
@@ -136,23 +173,13 @@ const LoggedAddPotPage = () => {
     }
   };
 
-  const handleShapeChange = (selectedOption) => {
-    setFormData({
-      ...formData,
-      shape: selectedOption.value,
-      dimensions: { height: '', width: '', depth: '', diameter: '' }
-    });
-    setIgnoreWaterLimit(false);
-    setWaterLimitExceeded(false);
-  };
-
   return (
     <Grommet theme={theme}>
       <Box fill align="center" justify="center" pad="large" background="light-1">
         <Heading level="2" color="brand">Dodaj Nową Doniczkę</Heading>
         <Box width="large" pad="medium">
           <Form onSubmit={handleSubmit}>
-            <Grid columns={['flex', 'flex']} gap="medium">
+          <Grid columns={['flex', 'flex']} gap="medium">
               <Box>
                 <FormField label="Nazwa Doniczki">
                   <TextInput
@@ -185,7 +212,7 @@ const LoggedAddPotPage = () => {
                   </Box>
                 )}
 
-                <FormField label="Jednostka Czasu Podlewania">
+<FormField label="Jednostka Czasu Podlewania">
                   {!frequencyInputVisible ? (
                     <Select options={unitOptions} placeholder="Wybierz jednostkę" value={unit} onChange={({ option }) => handleUnitSelect(option)} />
                   ) : (
@@ -268,7 +295,7 @@ const LoggedAddPotPage = () => {
             </Grid>
 
             <Box direction="row" justify="between" margin={{ top: 'medium' }}>
-              <Button type="submit" label="Dodaj Doniczkę" primary />
+              <Button type="submit" label="Dodaj Doniczkę" primary disabled={potLimitReached} />
               <Button label="Anuluj" color="custom-cancel" onClick={() => navigate('/dashboard')} />
             </Box>
 
