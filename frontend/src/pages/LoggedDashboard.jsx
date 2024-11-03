@@ -13,7 +13,7 @@ const LoggedDashboard = () => {
   useEffect(() => {
     const fetchPots = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/me/pots', {
+        const response = await fetch('https://flowersmanager.pl/api/users/me/pots', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -34,7 +34,7 @@ const LoggedDashboard = () => {
 
   const handleCheckSoilMoisture = async (potId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
+      const response = await fetch(`https://flowersmanager.pl/api/users/me/pots/${potId}/soil-moisture`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -52,7 +52,7 @@ const LoggedDashboard = () => {
 
   const handleDeletePot = async (potId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+      const response = await fetch(`https://flowersmanager.pl/api/users/me/pots/${potId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

@@ -15,7 +15,7 @@ const LoggedAccountSettings = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch('http://localhost:5000/api/users/me', {
+      const response = await fetch('https://flowersmanager.pl/api/users/me', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -41,7 +41,7 @@ const LoggedAccountSettings = () => {
     if (!fieldToUpdate) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/me', {
+      const response = await fetch('https://flowersmanager.pl/api/users/me', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

@@ -45,7 +45,7 @@ const LoggedAddPotPage = () => {
   useEffect(() => {
     const fetchPotCount = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/me/pots', {
+        const response = await fetch('https://flowersmanager.pl/api/users/me/pots', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -149,7 +149,7 @@ const LoggedAddPotPage = () => {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/me/pots', {
+      const response = await fetch('https://flowersmanager.pl/api/users/me/pots', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
