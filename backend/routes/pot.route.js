@@ -1,5 +1,5 @@
 import express from 'express';
-import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getSoilMoisture } from "../controllers/pot.controller.js";
+import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getLatestSoilMoisture } from "../controllers/pot.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });
@@ -11,9 +11,10 @@ router.get("/",authMiddleware, getPotsByUser);
 router.get("/:potId",authMiddleware, getPotById);
 
 // Pobieranie wilgotności gleby
-router.get('/:potId/soil-moisture', getSoilMoisture);
+router.get('/:potId/soil-moisture', getLatestSoilMoisture);
 
-// Tworzenie nowej doniczki dla użytkownika
+router.post('/:potId/soil-moisture', authMiddleware, requestSoilMoisture);
+
 router.post("/",authMiddleware, addPot);
 
 // Aktualizowanie doniczki użytkownika

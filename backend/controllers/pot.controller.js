@@ -1,7 +1,7 @@
 import Pot from '../models/Pot.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
-import { sendPotListToUser } from '../mqttClient.js';
+import { sendPotListToUser, requestSoilMoistureCheck } from '../mqttClient.js';
 
 // Pobierz wszystkie doniczki dla konkretnego użytkownika
 export const getPotsByUser = async (req, res) => {
@@ -16,13 +16,26 @@ export const getPotsByUser = async (req, res) => {
     }
 };
 
-const getSoilMoistureFromSensor = async (potId) => {
-    // Przykładowa wartość
-    return Math.floor(Math.random() * 100); // Wilgotność gleby w zakresie 0-100%
-};
+export const requestSoilMoisture = async (req, res) => {
+    const userId = req.user.id;
+    const { potId } = req.params;
+  
+    try {
+      const pot = await Pot.findOne({ _id: potId, owner: userId });
+      if (!pot) {
+        return res.status(404).json({ success: false, message: 'Doniczka nie została znaleziona' });
+      }
+  
+      requestSoilMoistureCheck(userId, potId);
+      res.status(200).json({ success: true, message: 'Wysłano żądanie o sprawdzenie wilgotności gleby' });
+    } catch (error) {
+      console.error("Błąd podczas wysyłania żądania o wilgotność gleby", error.message);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
 
-export const getSoilMoisture = async (req, res) => {
-    const userId = req.user.id; // Pobierz userId z authMiddleware
+export const getLatestSoilMoisture = async (req, res) => {
+    const userId = req.user.id; 
     const { potId } = req.params;
 
     try {
@@ -31,22 +44,17 @@ export const getSoilMoisture = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Doniczka nie została znaleziona' });
         }
 
-        // Pobierz wilgotność gleby
-        const soilMoisture = await getSoilMoistureFromSensor(potId);
+        const latestEntry = pot.wateringHistory
+            .filter(entry => entry.soilMoisture != null)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-        // Dodaj nowy wpis do historii podlewania z wilgotnością gleby
-        const newHistoryEntry = {
-            date: new Date(),
-            waterAmount: 0, // W tym przypadku wilgotność gleby, więc brak wody
-            soilMoisture,
-        };
+        if (!latestEntry) {
+            return res.status(404).json({ success: false, message: 'Brak danych o wilgotności gleby' });
+        }
 
-        pot.wateringHistory.push(newHistoryEntry);
-        await pot.save();
-
-        res.status(200).json({ success: true, soilMoisture });
+        res.status(200).json({ success: true, soilMoisture: latestEntry.soilMoisture });
     } catch (error) {
-        console.error("Błąd podczas pobierania wilgotności gleby", error.message);
+        console.error("Błąd podczas pobierania najnowszej wilgotności gleby", error.message);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };

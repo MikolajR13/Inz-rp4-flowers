@@ -13,7 +13,7 @@ const LoggedCombinedHistory = () => {
 
   const fetchHistoryData = async (page) => {
     try {
-      const response = await fetch(`https://flowersmanager.pl/api/users/me/watering-history?page=${page}&limit=${rowsPerPage}`, {
+      const response = await fetch(`http://localhost:5000/api/users/me/watering-history?page=${page}&limit=${rowsPerPage}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

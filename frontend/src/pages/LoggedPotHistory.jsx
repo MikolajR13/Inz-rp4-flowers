@@ -13,7 +13,7 @@ const LoggedPotHistory = () => {
 
     const fetchWateringHistory = useCallback(async () => {
         try {
-            const response = await fetch(`https://flowersmanager.pl/api/users/me/pots/${potId}/watering?page=1&limit=50`, {
+            const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/watering?page=1&limit=50`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }

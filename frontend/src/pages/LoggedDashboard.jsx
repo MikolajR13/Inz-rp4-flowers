@@ -13,7 +13,7 @@ const LoggedDashboard = () => {
   useEffect(() => {
     const fetchPots = async () => {
       try {
-        const response = await fetch('https://flowersmanager.pl/api/users/me/pots', {
+        const response = await fetch('http://localhost:5000/api/users/me/pots', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -32,27 +32,40 @@ const LoggedDashboard = () => {
     fetchPots();
   }, []);
 
+
   const handleCheckSoilMoisture = async (potId) => {
     try {
-      const response = await fetch(`https://flowersmanager.pl/api/users/me/pots/${potId}/soil-moisture`, {
-        method: 'GET',
+      await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        alert(`Wilgotność gleby: ${data.soilMoisture}%`);
-      }
+  
+      // Dodanie opóźnienia na odbiór odpowiedzi
+      setTimeout(async () => {
+        const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          alert(`Wilgotność gleby: ${data.soilMoisture}%`);
+        }
+      }, 5000); // Opóźnienie na odebranie odpowiedzi
     } catch (error) {
       console.error('Błąd podczas sprawdzania wilgotności gleby:', error);
     }
   };
+  
 
   const handleDeletePot = async (potId) => {
     try {
-      const response = await fetch(`https://flowersmanager.pl/api/users/me/pots/${potId}`, {
+      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

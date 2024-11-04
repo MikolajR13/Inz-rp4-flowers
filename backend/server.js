@@ -20,7 +20,7 @@ app.use("/api/users/me/pots", potRoutes); // Ścieżka z doniczkami - powiązana
 app.use("/api/users/me", historyRoutes); // Ścieżka związana z historią podlewania per doniczka - powiązana z potId bo jes historia podlewania per doniczka
 
 app.use(cors({
-    origin: 'https://flowersmanager.pl'
+    origin: 'http://localhost:3000'
   }));
 
 app.get("/", (req, res) => {
@@ -31,7 +31,7 @@ cron.schedule('* * * * *', checkAndWaterPots);
 
 app.listen(PORT, () => {
     connectDb();
-    console.log("Server started at https://flowersmanager.pl")
+    console.log("Server started at https://localhost:5000")
 });
 
 export default app
