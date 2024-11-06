@@ -3,6 +3,10 @@ import { Box, Heading, Grid, Text, Image, Card, CardBody, Button, Layer } from '
 import { useNavigate } from 'react-router-dom';
 import potIcon from '../assets/pot.png'; // Ikona doniczki
 import addIcon from '../assets/add.png'; // Ikona dodania nowej doniczki
+import dotenv from "dotenv";
+dotenv.config();
+
+const SERVER = process.env.SERVER;
 
 const LoggedDashboard = () => {
   const [pots, setPots] = useState([]);
@@ -13,7 +17,7 @@ const LoggedDashboard = () => {
   useEffect(() => {
     const fetchPots = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/me/pots', {
+        const response = await fetch(`${SERVER}/api/users/me/pots`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -35,7 +39,7 @@ const LoggedDashboard = () => {
 
   const handleCheckSoilMoisture = async (potId) => {
     try {
-      await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
+      await fetch(`${SERVER}/api/users/me/pots/${potId}/soil-moisture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -45,7 +49,7 @@ const LoggedDashboard = () => {
   
       // Dodanie opóźnienia na odbiór odpowiedzi
       setTimeout(async () => {
-        const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/soil-moisture`, {
+        const response = await fetch(`${SERVER}/api/users/me/pots/${potId}/soil-moisture`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -65,7 +69,7 @@ const LoggedDashboard = () => {
 
   const handleDeletePot = async (potId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+      const response = await fetch(`${SERVER}/api/users/me/pots/${potId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
