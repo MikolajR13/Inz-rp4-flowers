@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Grid, Grommet } from 'grommet';
 import { useNavigate } from 'react-router-dom';
 
+import dotenv from "dotenv";
+dotenv.config();
+
+const SERVER = process.env.SERVER;
+
 const theme = {
   global: {
     colors: {
@@ -45,7 +50,7 @@ const LoggedAddPotPage = () => {
   useEffect(() => {
     const fetchPotCount = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/me/pots', {
+        const response = await fetch(`${SERVER}/api/users/me/pots`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -149,7 +154,7 @@ const LoggedAddPotPage = () => {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/me/pots', {
+      const response = await fetch(`${SERVER}/api/users/me/pots`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
