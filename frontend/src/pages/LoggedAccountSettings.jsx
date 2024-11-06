@@ -12,10 +12,11 @@ const LoggedAccountSettings = () => {
   const [showReturnPrompt, setShowReturnPrompt] = useState(false);
   const [fieldToUpdate, setFieldToUpdate] = useState(null);
   const navigate = useNavigate();
+  const SERVER = process.env.SERVER;
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch('http://localhost:5000/api/users/me', {
+      const response = await fetch(`${SERVER}/api/users/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -41,7 +42,7 @@ const LoggedAccountSettings = () => {
     if (!fieldToUpdate) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/me', {
+      const response = await fetch(`${SERVER}/api/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
