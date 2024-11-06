@@ -15,10 +15,11 @@ const EditPot = () => {
   const [isWaterLimitIgnored, setIsWaterLimitIgnored] = useState(false);
   const [waterLimit, setWaterLimit] = useState(null);
   const navigate = useNavigate();
+  const SERVER = process.env.SERVER;
 
   const fetchPotDetails = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+      const response = await fetch(`${SERVER}/api/users/me/pots/${potId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -81,7 +82,7 @@ const EditPot = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+      const response = await fetch(`${SERVER}/api/users/me/pots/${potId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
