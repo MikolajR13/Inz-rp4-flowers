@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Heading, TextInput, Button, FormField, Form, Layer, Text } from 'grommet';
 import { useNavigate } from 'react-router-dom';
 
+import dotenv from "dotenv";
+dotenv.config();
+
 const LoggedAccountSettings = () => {
   const [userData, setUserData] = useState({
     email: '',
