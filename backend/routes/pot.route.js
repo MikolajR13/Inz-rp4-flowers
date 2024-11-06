@@ -11,7 +11,7 @@ router.get("/",authMiddleware, getPotsByUser);
 router.get("/:potId",authMiddleware, getPotById);
 
 // Pobieranie wilgotności gleby
-router.get('/:potId/soil-moisture', getLatestSoilMoisture);
+router.get('/:potId/soil-moisture',authMiddleware,  getLatestSoilMoisture);
 
 router.post('/:potId/soil-moisture', authMiddleware, requestSoilMoisture);
 
