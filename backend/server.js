@@ -20,7 +20,7 @@ app.use("/api/users/me/pots", potRoutes); // Ścieżka z doniczkami - powiązana
 app.use("/api/users/me", historyRoutes); // Ścieżka związana z historią podlewania per doniczka - powiązana z potId bo jes historia podlewania per doniczka
 
 app.use(cors({
-    origin: 'http://localhost:3000'
+    origin: process.env.SERVER
   }));
 
 app.get("/", (req, res) => {
