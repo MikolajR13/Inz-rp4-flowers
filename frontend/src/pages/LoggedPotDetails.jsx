@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, Button, Card, CardBody } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
+import dotenv from "dotenv";
+dotenv.config();
+
+const SERVER = process.env.SERVER;
 
 const LoggedPotDetails = () => {
   const { potId } = useParams();
@@ -10,7 +14,7 @@ const LoggedPotDetails = () => {
   useEffect(() => {
     const fetchPotDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}`, {
+        const response = await fetch(`${SERVER}/api/users/me/pots/${potId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
@@ -38,7 +42,7 @@ const LoggedPotDetails = () => {
           date: new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000))
         };
 
-        await fetch(`http://localhost:5000/api/users/me/pots/${potId}/watering`, {
+        await fetch(`${SERVER}/api/users/me/pots/${potId}/watering`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
