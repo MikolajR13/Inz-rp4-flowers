@@ -2,6 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Table, TableHeader, TableRow, TableCell, TableBody, Heading, Button, Pagination  } from 'grommet';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useParams } from 'react-router-dom';
+import dotenv from "dotenv";
+dotenv.config();
+const SERVER = process.env.SERVER;
 
 const LoggedPotHistory = () => {
     const { potId } = useParams();
@@ -13,7 +16,7 @@ const LoggedPotHistory = () => {
 
     const fetchWateringHistory = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/users/me/pots/${potId}/watering?page=1&limit=50`, {
+            const response = await fetch(`${SERVER}/api/users/me/pots/${potId}/watering?page=1&limit=50`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
