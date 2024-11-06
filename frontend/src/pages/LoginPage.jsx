@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Button, Heading, TextInput, Form, FormField, Text } from 'grommet';
 import { useNavigate } from 'react-router-dom';
+import dotenv from "dotenv";
+dotenv.config();
+const SERVER = process.env.SERVER;
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -11,7 +14,7 @@ const LoginPage = () => {
     event.preventDefault();
     
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', {
+      const response = await fetch(`${SERVER}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
