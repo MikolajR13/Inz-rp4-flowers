@@ -3,10 +3,9 @@ import { Box, Heading, Grid, Text, Image, Card, CardBody, Button, Layer } from '
 import { useNavigate } from 'react-router-dom';
 import potIcon from '../assets/pot.png'; // Ikona doniczki
 import addIcon from '../assets/add.png'; // Ikona dodania nowej doniczki
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedDashboard = () => {
   const [pots, setPots] = useState([]);
@@ -36,7 +35,6 @@ const LoggedDashboard = () => {
     fetchPots();
   }, []);
 
-
   const handleCheckSoilMoisture = async (potId) => {
     try {
       await fetch(`${SERVER}/api/users/me/pots/${potId}/soil-moisture`, {
@@ -46,8 +44,7 @@ const LoggedDashboard = () => {
           'Content-Type': 'application/json'
         }
       });
-  
-      // Dodanie opóźnienia na odbiór odpowiedzi
+
       setTimeout(async () => {
         const response = await fetch(`${SERVER}/api/users/me/pots/${potId}/soil-moisture`, {
           method: 'GET',
@@ -65,7 +62,6 @@ const LoggedDashboard = () => {
       console.error('Błąd podczas sprawdzania wilgotności gleby:', error);
     }
   };
-  
 
   const handleDeletePot = async (potId) => {
     try {
@@ -101,13 +97,23 @@ const LoggedDashboard = () => {
             background="light-1"
             pad="medium"
             hoverIndicator
-            onClick={() => navigate(`/pot/${pot._id}`)} 
+            onClick={() => navigate(`/pot/${pot._id}`)}
           >
             <CardBody align="center">
               <Image src={potIcon} alt="Pot icon" width="70px" height="70px" margin={{ bottom: 'small' }} />
               <Text size="large" color="dark-3" margin={{ bottom: 'small' }}>{pot.potName}</Text>
               <Text size="medium" color="dark-4">Kwiat: {pot.flowerName}</Text>
-              <Text size="small" color="dark-4">Ostatnie podlewanie: {new Date(pot.lastWateredDate).toLocaleDateString()}</Text>
+              
+              {pot.lastWateredDate ? (
+                <Text size="small" color="dark-4">Ostatnie podlewanie: {new Date(pot.lastWateredDate).toLocaleDateString()}</Text>
+              ) : (
+                <Text size="small" color="dark-4">Ostatnie podlewanie: Brak danych</Text>
+              )}
+
+              <Text size="small" color="dark-4">
+                Tryb podlewania: {pot.autoWateringEnabled ? "Automatyczny" : "Ręczny"}
+              </Text>
+              
               <Box direction="row" gap="small" margin={{ top: 'small' }}>
                 <Button
                   label="Usuń Doniczkę"
@@ -138,7 +144,7 @@ const LoggedDashboard = () => {
           </Card>
         ))}
 
-        <Card background="light-1" pad="medium" hoverIndicator onClick={() => navigate('/add-pot')}>
+        <Card background="light-1" pad="medium" hoverIndicator onClick={() => navigate('/add-flower-name')}>
           <CardBody align="center">
             <Image src={addIcon} alt="Add Pot" width="70px" height="70px" margin={{ bottom: 'small' }} />
             <Text size="large" color="dark-3">Dodaj Nową Doniczkę</Text>

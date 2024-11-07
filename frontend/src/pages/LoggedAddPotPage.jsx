@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Grid, Grommet } from 'grommet';
 import { useNavigate } from 'react-router-dom';
+import { usePlantData } from '../context/PlantDataContext'; // Import kontekstu
 
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+const SERVER = process.env.REACT_APP_SERVER;
 
 const theme = {
   global: {
@@ -23,9 +22,10 @@ const shapeOptions = [
 const unitOptions = ['Godziny', 'Dni'];
 
 const LoggedAddPotPage = () => {
+  const { plantData, setPlantData } = usePlantData(); // Użycie kontekstu
   const [formData, setFormData] = useState({
     potName: '',
-    flowerName: '',
+    flowerName: plantData ? plantData.nazwa : '', // Ustawienie nazwy kwiatka z kontekstu
     waterAmount: '',
     wateringFrequency: '',
     potSize: '',
@@ -48,6 +48,13 @@ const LoggedAddPotPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (plantData && plantData.nazwa) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        flowerName: plantData.nazwa // Aktualizacja flowerName z kontekstu
+      }));
+    }
+
     const fetchPotCount = async () => {
       try {
         const response = await fetch(`${SERVER}/api/users/me/pots`, {
@@ -69,7 +76,7 @@ const LoggedAddPotPage = () => {
     };
 
     fetchPotCount();
-  }, []);
+  }, [plantData]);
 
   const calculateWaterLimit = () => {
     const { height, width, depth, diameter } = formData.dimensions;
@@ -168,6 +175,7 @@ const LoggedAddPotPage = () => {
       if (data.success) {
         setSuccessMessage('Doniczka została dodana!');
         setTimeout(() => {
+          setPlantData(null); // Resetujemy kontekst po dodaniu doniczki
           navigate('/dashboard');
         }, 2000);
       } else {
@@ -184,7 +192,7 @@ const LoggedAddPotPage = () => {
         <Heading level="2" color="brand">Dodaj Nową Doniczkę</Heading>
         <Box width="large" pad="medium">
           <Form onSubmit={handleSubmit}>
-          <Grid columns={['flex', 'flex']} gap="medium">
+            <Grid columns={['flex', 'flex']} gap="medium">
               <Box>
                 <FormField label="Nazwa Doniczki">
                   <TextInput
@@ -217,7 +225,7 @@ const LoggedAddPotPage = () => {
                   </Box>
                 )}
 
-<FormField label="Jednostka Czasu Podlewania">
+                <FormField label="Jednostka Czasu Podlewania">
                   {!frequencyInputVisible ? (
                     <Select options={unitOptions} placeholder="Wybierz jednostkę" value={unit} onChange={({ option }) => handleUnitSelect(option)} />
                   ) : (

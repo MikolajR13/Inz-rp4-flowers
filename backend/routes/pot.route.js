@@ -1,10 +1,12 @@
 import express from 'express';
-import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getLatestSoilMoisture } from "../controllers/pot.controller.js";
+import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getLatestSoilMoisture, requestSoilMoisture, getPlantData } from "../controllers/pot.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });
 
 // Pobieranie wszystkich doniczek użytkownika
+router.get('/', authMiddleware, getPlantData);
+
 router.get("/",authMiddleware, getPotsByUser);
 
 // Pobieranie konkretnej doniczki użytkownika
@@ -14,6 +16,7 @@ router.get("/:potId",authMiddleware, getPotById);
 router.get('/:potId/soil-moisture',authMiddleware,  getLatestSoilMoisture);
 
 router.post('/:potId/soil-moisture', authMiddleware, requestSoilMoisture);
+
 
 router.post("/",authMiddleware, addPot);
 

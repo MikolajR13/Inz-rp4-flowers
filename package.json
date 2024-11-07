@@ -16,6 +16,8 @@
     "@emotion/styled": "^11.13.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "deepl": "^1.0.13",
+    "deepl-node": "^1.14.0",
     "dotenv": "^16.4.5",
     "eslint": "^9.13.0",
     "express": "^4.21.1",
@@ -25,7 +27,8 @@
     "mongoose": "^8.7.2",
     "moongose": "^1.0.0",
     "mqtt": "^5.10.1",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "translate": "^3.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

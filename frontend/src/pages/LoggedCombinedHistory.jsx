@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHeader, TableRow, TableCell, TableBody, Heading, Pagination } from 'grommet';
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedCombinedHistory = () => {
   const [historyData, setHistoryData] = useState([]);

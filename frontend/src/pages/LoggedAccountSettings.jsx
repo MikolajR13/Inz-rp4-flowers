@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, Heading, TextInput, Button, FormField, Form, Layer, Text } from 'grommet';
 import { useNavigate } from 'react-router-dom';
 
-import dotenv from "dotenv";
-dotenv.config();
-
 const LoggedAccountSettings = () => {
   const [userData, setUserData] = useState({
     email: '',
@@ -15,7 +12,7 @@ const LoggedAccountSettings = () => {
   const [showReturnPrompt, setShowReturnPrompt] = useState(false);
   const [fieldToUpdate, setFieldToUpdate] = useState(null);
   const navigate = useNavigate();
-  const SERVER = process.env.SERVER;
+  const SERVER = process.env.REACT_APP_SERVER;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -33,7 +30,7 @@ const LoggedAccountSettings = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [SERVER]);
 
   const handleFieldSubmit = (field) => {
     setFieldToUpdate(field);

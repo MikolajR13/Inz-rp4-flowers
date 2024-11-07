@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Button, Form, FormField, TextInput, Select, Heading, Text } from 'grommet';
+import { Box, Button, Form, FormField, TextInput, Select, Heading, Text, CheckBox } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
 
 const shapeOptions = [
   { label: 'Prostopadłościan', value: 'cuboid' },
@@ -12,12 +10,13 @@ const shapeOptions = [
 const EditPot = () => {
   const { potId } = useParams();
   const [formData, setFormData] = useState(null);
+  const [plantInfo, setPlantInfo] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [showOverrideButton, setShowOverrideButton] = useState(false);
   const [isWaterLimitIgnored, setIsWaterLimitIgnored] = useState(false);
   const [waterLimit, setWaterLimit] = useState(null);
   const navigate = useNavigate();
-  const SERVER = process.env.SERVER;
+  const SERVER = process.env.REACT_APP_SERVER;
 
   const fetchPotDetails = useCallback(async () => {
     try {
@@ -30,11 +29,20 @@ const EditPot = () => {
       const data = await response.json();
       if (data.success) {
         setFormData(data.data);
+
+        // Pobranie informacji o roślinie
+        if (data.data.flowerName) {
+          const plantResponse = await fetch(`${SERVER}/api/plants?query=${data.data.flowerName}`);
+          const plantData = await plantResponse.json();
+          if (plantData.success) {
+            setPlantInfo(plantData.data[0]);
+          }
+        }
       }
     } catch (error) {
       console.error('Błąd podczas pobierania szczegółów doniczki:', error);
     }
-  }, [potId]);
+  }, [potId, SERVER]);
 
   useEffect(() => {
     fetchPotDetails();
@@ -180,31 +188,66 @@ const EditPot = () => {
                 />
               </FormField>
             )}
-            <FormField label="Ilość Wody (ml)">
-              <TextInput
-                value={formData.waterAmount || ''}
-                onChange={(e) => handleWaterAmountChange(e.target.value)}
+            <FormField label="Automatyczne Podlewanie">
+              <CheckBox
+                checked={formData.autoWateringEnabled || false}
+                onChange={(e) => handleChange('autoWateringEnabled', e.target.checked)}
               />
             </FormField>
-            {showOverrideButton && (
-              <Box align="center" margin={{ top: 'small' }}>
-                <Text color="status-critical">Przekroczono limit wody! Możliwe przelanie rośliny.</Text>
-                <Button
-                  label="Zignoruj Limit"
-                  onClick={handleOverrideLimit}
-                  margin={{ top: 'small' }}
-                />
-              </Box>
+
+            {!formData.autoWateringEnabled && (
+              <>
+                <FormField label="Ilość Wody (ml)">
+                  <TextInput
+                    value={formData.waterAmount || ''}
+                    onChange={(e) => handleWaterAmountChange(e.target.value)}
+                  />
+                </FormField>
+                {showOverrideButton && (
+                  <Box align="center" margin={{ top: 'small' }}>
+                    <Text color="status-critical">Przekroczono limit wody! Możliwe przelanie rośliny.</Text>
+                    <Button
+                      label="Zignoruj Limit"
+                      onClick={handleOverrideLimit}
+                      margin={{ top: 'small' }}
+                    />
+                  </Box>
+                )}
+                <FormField label="Częstotliwość Podlewania (dni)">
+                  <TextInput
+                    value={formData.wateringFrequency}
+                    onChange={(e) => handleChange('wateringFrequency', e.target.value)}
+                  />
+                </FormField>
+              </>
             )}
-            <FormField label="Częstotliwość Podlewania (dni)">
-              <TextInput
-                value={formData.wateringFrequency}
-                onChange={(e) => handleChange('wateringFrequency', e.target.value)}
-              />
-            </FormField>
+
             <Button type="submit" label="Zapisz Zmiany" primary margin={{ top: 'medium' }} />
           </Form>
           {errorMessage && <Text color="status-critical">{errorMessage}</Text>}
+
+          {plantInfo && (
+            <Box margin={{ top: 'medium' }}>
+              <Heading level="4">Specyfika Gatunku</Heading>
+              {plantInfo.nazwa && <Text>Nazwa: {plantInfo.nazwa}</Text>}
+              {plantInfo.typ_drzewa && <Text>Typ Drzewa: {plantInfo.typ_drzewa}</Text>}
+              {plantInfo.forma_wzrostu && <Text>Forma Wzrostu: {plantInfo.forma_wzrostu}</Text>}
+              {plantInfo.nawyk_wzrostu && <Text>Nawyk Wzrostu: {plantInfo.nawyk_wzrostu}</Text>}
+              {plantInfo.tempo_wzrostu && <Text>Tempo Wzrostu: {plantInfo.tempo_wzrostu}</Text>}
+              {plantInfo.srednia_wysokosc && <Text>Średnia Wysokość: {plantInfo.srednia_wysokosc}</Text>}
+              {plantInfo.maksymalna_wysokosc && <Text>Maks. Wysokość: {plantInfo.maksymalna_wysokosc}</Text>}
+              {plantInfo.orientacja && <Text>Orientacja: {plantInfo.orientacja}</Text>}
+              {plantInfo.toksycznosc && <Text>Toksyczność: {plantInfo.toksycznosc}</Text>}
+              {plantInfo.dni_do_zbioru && <Text>Dni do Zbioru: {plantInfo.dni_do_zbioru}</Text>}
+              {plantInfo.opis && <Text>Opis: {plantInfo.opis}</Text>}
+              {(plantInfo.ph_min || plantInfo.ph_max) && (
+                <Text>pH Gleby: {plantInfo.ph_min} - {plantInfo.ph_max}</Text>
+              )}
+              {plantInfo.swiatlo && <Text>Światło: {plantInfo.swiatlo}</Text>}
+              {plantInfo.wilgotnosc_powietrza && <Text>Wilgotność Powietrza: {plantInfo.wilgotnosc_powietrza}</Text>}
+            </Box>
+          )}
+
         </Box>
       ) : (
         <Text>Ładowanie szczegółów doniczki...</Text>

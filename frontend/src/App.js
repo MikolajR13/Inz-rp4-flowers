@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoggedNavbar from './components/LoggedNavbar'; // Nowy navbar dla zalogowanych użytkowników
 import ProtectedRoute from './components/ProtectedRoute';
-import { getUserInfo } from './utils/getUserInfo'; // Import funkcji getUserInfo
+import { getUserInfo } from './utils/getUserInfo';
+import { PlantDataProvider } from './context/PlantDataContext'; // Poprawiona ścieżka
 
 // Updated imports of pages
 import HomePage from './pages/HomePage';
@@ -19,6 +20,8 @@ import LoggedPotHistory from './pages/LoggedPotHistory';
 import LoggedAccountSettings from './pages/LoggedAccountSettings';
 import LoggedAddPotPage from './pages/LoggedAddPotPage';
 import EditPot from './pages/EditPot';
+import LoggedPotSearchPage from './pages/LoggedPotSearchPage';
+import LoggedAddPotPageAuto from './pages/LoggedAddPotPageAuto';
 
 function App() {
   // Sprawdzenie, czy użytkownik jest zalogowany na podstawie obecności tokena
@@ -31,72 +34,90 @@ function App() {
       {/* Renderowanie odpowiedniego Navbara */}
       {isLoggedIn ? <LoggedNavbar userInfo={userInfo} /> : <Navbar />}
       
-      <Routes>
-        {/* Public paths */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/project" element={<ProjectPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <PlantDataProvider>
+        <Routes>
+          {/* Public paths */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/project" element={<ProjectPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected paths */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <LoggedDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/pot/:potId"
-          element={
-            <ProtectedRoute>
-              <LoggedPotDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <LoggedCombinedHistory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/pot-history/:potId"
-          element={
-            <ProtectedRoute>
-              <LoggedPotHistory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account-settings"
-          element={
-            <ProtectedRoute>
-              <LoggedAccountSettings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/add-pot"
-          element={
-            <ProtectedRoute>
-              <LoggedAddPotPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/edit-pot/:potId"
-          element={
-            <ProtectedRoute>
-              <EditPot />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          {/* Protected paths */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <LoggedDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pot/:potId"
+            element={
+              <ProtectedRoute>
+                <LoggedPotDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <LoggedCombinedHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pot-history/:potId"
+            element={
+              <ProtectedRoute>
+                <LoggedPotHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account-settings"
+            element={
+              <ProtectedRoute>
+                <LoggedAccountSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-pot-manual"
+            element={
+              <ProtectedRoute>
+                <LoggedAddPotPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-pot-auto"
+            element={
+              <ProtectedRoute>
+                <LoggedAddPotPageAuto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-flower-name"
+            element={
+              <ProtectedRoute>
+                <LoggedPotSearchPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-pot/:potId"
+            element={
+              <ProtectedRoute>
+                <EditPot />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </PlantDataProvider>
     </Router>
   );
 }

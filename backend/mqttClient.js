@@ -38,6 +38,12 @@ export const requestSoilMoistureCheck = (userId, potId) => {
   client.publish(`user/${userId}/pot/${potId}/soilMoistureRequest`, JSON.stringify({ request: "checkSoilMoisture" }));
 };
 
+// Funkcja do automatycznego podlewania, jeśli włączone
+const requestAutoWatering = (userId, potId, minSoilMoisture, maxSoilMoisture) => {
+  console.log(`[DEBUG] Wysyłanie żądania automatycznego podlewania dla doniczki ${potId} użytkownika ${userId} z wilgotnością gleby min: ${minSoilMoisture}, max: ${maxSoilMoisture}`);
+  client.publish(`user/${userId}/pot/${potId}/autowatering`, JSON.stringify({ minSoilMoisture, maxSoilMoisture }));
+};
+
 export const sendPotListToUser = async (userId) => {
   try {
     const user = await User.findById(userId).populate('pots');
@@ -60,7 +66,7 @@ export const checkAndWaterPots = async () => {
   try {
     const pots = await Pot.find();
 
-    pots.forEach(pot => {
+    pots.forEach(async pot => {
       const now = new Date();
       const lastWatering = pot.wateringHistory.length > 0 
         ? new Date(pot.wateringHistory[pot.wateringHistory.length - 1].date) 
@@ -71,14 +77,25 @@ export const checkAndWaterPots = async () => {
 
       console.log(`[DEBUG] Sprawdzanie doniczki ${pot._id}: Czas od ostatniego podlewania = ${timeSinceLastWatering / 60000} minut, Wymagany odstęp = ${intervalInMs / 60000} minut`);
 
-      if (timeSinceLastWatering >= intervalInMs) {
-        console.log(`[DEBUG] Automatyczne podlewanie doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
-        requestWatering(pot.userId, pot._id, pot.waterAmount); // Przekazujemy `userId` i `potId`
+      if (pot.autoWateringEnabled && !pot.autoWateringSent) {
+        const minSoilMoisture = pot.plantSpecifications?.soilMoisture?.min || 3;
+        const maxSoilMoisture = pot.plantSpecifications?.soilMoisture?.max || 7;
+
+        console.log(`[DEBUG] Automatyczne podlewanie dla doniczki ${pot._id} użytkownika ${pot.owner}`);
+        requestAutoWatering(pot.owner, pot._id, minSoilMoisture, maxSoilMoisture);
+
+        pot.autoWateringSent = true;
+        await pot.save();
+      } else if (!pot.autoWateringEnabled && timeSinceLastWatering >= intervalInMs) {
+        console.log(`[DEBUG] Podlewanie ręczne doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
+        requestWatering(pot.owner, pot._id, pot.waterAmount);
+        await pot.save();
       }
     });
   } catch (error) {
     console.error("Błąd przy sprawdzaniu harmonogramu podlewania:", error);
   }
 };
+
 
 export default client;

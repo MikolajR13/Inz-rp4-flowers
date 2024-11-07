@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, Button, Card, CardBody } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedPotDetails = () => {
   const { potId } = useParams();
@@ -78,6 +76,90 @@ const LoggedPotDetails = () => {
             )}
             <Text size="small" margin={{ bottom: 'small' }}>Częstotliwość podlewania: {potDetails.wateringFrequency} dni</Text>
             <Text size="small" margin={{ bottom: 'small' }}>Ilość wody: {potDetails.waterAmount} ml</Text>
+
+            {potDetails.plantSpecifications && (
+              <>
+                <Heading level="3" margin={{ top: 'medium', bottom: 'small' }}>Specyfika Gatunku</Heading>
+                {potDetails.plantSpecifications.commonName && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Nazwa zwyczajowa: {potDetails.plantSpecifications.commonName}</Text>
+                )}
+                {potDetails.plantSpecifications.ligneousType && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Typ drzewa: {potDetails.plantSpecifications.ligneousType}</Text>
+                )}
+                {potDetails.plantSpecifications.growthForm && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Forma wzrostu: {potDetails.plantSpecifications.growthForm}</Text>
+                )}
+                {potDetails.plantSpecifications.growthHabit && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Nawyk wzrostu: {potDetails.plantSpecifications.growthHabit}</Text>
+                )}
+                {potDetails.plantSpecifications.growthRate && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Tempo wzrostu: {potDetails.plantSpecifications.growthRate}</Text>
+                )}
+                {potDetails.plantSpecifications.averageHeight && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Średnia wysokość: {potDetails.plantSpecifications.averageHeight}</Text>
+                )}
+                {potDetails.plantSpecifications.maximumHeight && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Maksymalna wysokość: {potDetails.plantSpecifications.maximumHeight}</Text>
+                )}
+                {potDetails.plantSpecifications.shapeAndOrientation && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Orientacja: {potDetails.plantSpecifications.shapeAndOrientation}</Text>
+                )}
+                {potDetails.plantSpecifications.toxicity && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Toksyczność: {potDetails.plantSpecifications.toxicity}</Text>
+                )}
+                {potDetails.plantSpecifications.daysToHarvest && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Dni do zbioru: {potDetails.plantSpecifications.daysToHarvest}</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.phMin && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Minimalne pH gleby: {potDetails.plantSpecifications.soilRequirements.phMin}</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.phMax && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Maksymalne pH gleby: {potDetails.plantSpecifications.soilRequirements.phMax}</Text>
+                )}
+                {potDetails.plantSpecifications.lightRequirements && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Wymagania dotyczące światła: {potDetails.plantSpecifications.lightRequirements}</Text>
+                )}
+                {potDetails.plantSpecifications.atmosphericHumidity && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Wilgotność powietrza: {potDetails.plantSpecifications.atmosphericHumidity}</Text>
+                )}
+                {potDetails.plantSpecifications.growthMonths && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Miesiące wzrostu: {potDetails.plantSpecifications.growthMonths}</Text>
+                )}
+                {potDetails.plantSpecifications.bloomMonths && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Miesiące kwitnienia: {potDetails.plantSpecifications.bloomMonths}</Text>
+                )}
+                {potDetails.plantSpecifications.fruitMonths && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Miesiące owocowania: {potDetails.plantSpecifications.fruitMonths}</Text>
+                )}
+                {potDetails.plantSpecifications.precipitation?.min && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Minimalne opady: {potDetails.plantSpecifications.precipitation.min} mm</Text>
+                )}
+                {potDetails.plantSpecifications.precipitation?.max && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Maksymalne opady: {potDetails.plantSpecifications.precipitation.max} mm</Text>
+                )}
+                {potDetails.plantSpecifications.temperature?.min && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Minimalna temperatura: {potDetails.plantSpecifications.temperature.min} °C</Text>
+                )}
+                {potDetails.plantSpecifications.temperature?.max && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Maksymalna temperatura: {potDetails.plantSpecifications.temperature.max} °C</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.soilNutriments && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Składniki odżywcze gleby: {potDetails.plantSpecifications.soilRequirements.soilNutriments}</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.soilSalinity && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Zasolenie gleby: {potDetails.plantSpecifications.soilRequirements.soilSalinity}</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.soilTexture && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Tekstura gleby: {potDetails.plantSpecifications.soilRequirements.soilTexture}</Text>
+                )}
+                {potDetails.plantSpecifications.soilRequirements?.soilHumidity && (
+                  <Text size="small" margin={{ bottom: 'small' }}>Wilgotność gleby: {potDetails.plantSpecifications.soilRequirements.soilHumidity}</Text>
+                )}
+              </>
+            )}
+
+            <Text size="small" margin={{ bottom: 'small' }}>Automatyczne podlewanie: {potDetails.autoWateringEnabled ? 'Włączone' : 'Wyłączone'}</Text>
+            
             {potDetails.otherParams && (
               <>
                 <Text size="small" margin={{ bottom: 'small' }}>Nasłonecznienie: {potDetails.otherParams.sunlight}</Text>
