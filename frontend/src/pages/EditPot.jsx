@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Button, Form, FormField, TextInput, Select, Heading, Text } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
 
 const shapeOptions = [
   { label: 'Prostopadłościan', value: 'cuboid' },
@@ -17,7 +15,8 @@ const EditPot = () => {
   const [isWaterLimitIgnored, setIsWaterLimitIgnored] = useState(false);
   const [waterLimit, setWaterLimit] = useState(null);
   const navigate = useNavigate();
-  const SERVER = process.env.SERVER;
+  const SERVER = process.env.REACT_APP_SERVER
+  ;
 
   const fetchPotDetails = useCallback(async () => {
     try {

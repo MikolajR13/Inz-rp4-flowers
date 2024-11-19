@@ -2,9 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Table, TableHeader, TableRow, TableCell, TableBody, Heading, Button, Pagination  } from 'grommet';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useParams } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedPotHistory = () => {
     const { potId } = useParams();

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Button, Form, FormField, TextInput, Heading, Text } from 'grommet';
 import { useNavigate } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '', firstName: '', lastName: '' });

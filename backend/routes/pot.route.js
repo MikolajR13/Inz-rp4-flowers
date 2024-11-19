@@ -1,5 +1,5 @@
 import express from 'express';
-import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getLatestSoilMoisture } from "../controllers/pot.controller.js";
+import { addPot, updatePot, deletePot, getPotsByUser, getPotById, getLatestSoilMoisture, requestSoilMoisture } from "../controllers/pot.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });

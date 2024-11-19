@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Heading, Form, FormField, TextInput, Select, Text, Grid, Grommet } from 'grommet';
 import { useNavigate } from 'react-router-dom';
 
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+const SERVER = process.env.REACT_APP_SERVER;
 
 const theme = {
   global: {
