@@ -26,7 +26,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const SERVER = "http://localhost:5000";
+const SERVER = process.env.REACT_APP_SERVER;
 
 const WeatherPage = () => {
   const [currentWeather, setCurrentWeather] = useState(null);
