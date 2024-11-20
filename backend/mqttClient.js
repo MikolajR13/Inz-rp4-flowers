@@ -14,7 +14,7 @@ const responsePromises = {
 
 // Subskrypcje MQTT
 client.on('connect', async () => {
-  console.log('MQTT connected');
+  console.log('[DEBUG] MQTT connected');
   client.subscribe('user/+/pot/+/wateringResponse'); // Subskrypcja na odpowiedzi dla podlewania
   client.subscribe('user/+/pot/+/soilMoistureResponse'); // Subskrypcja na odpowiedzi dla wilgotności gleby
   client.subscribe('user/+/weatherResponse'); // Subskrypcja na dane pogodowe
@@ -24,6 +24,8 @@ client.on('connect', async () => {
 client.on('message', async (topic, message) => {
   const [_, userId, section, potId, type] = topic.split('/');
   const data = JSON.parse(message.toString());
+
+  console.log(`[DEBUG] Otrzymano wiadomość na temacie ${topic} z danymi:`, data);
 
   try {
     if (section === 'pot' && type === 'wateringResponse') {
@@ -59,7 +61,7 @@ client.on('message', async (topic, message) => {
         gasLevel,
         tilt,
         latitude,
-        longitude
+        longitude,
       } = data;
 
       if (responsePromises.weather.has(userId)) {
@@ -83,8 +85,9 @@ client.on('message', async (topic, message) => {
         timestamp: new Date(),
       });
 
+      console.log(`[DEBUG] Zapisywanie danych pogodowych dla użytkownika ${userId}...`);
       await weatherEntry.save();
-      console.log(`[DEBUG] Dane pogodowe zapisane dla użytkownika ${userId}`);
+      console.log(`[DEBUG] Dane pogodowe zapisane w bazie dla użytkownika ${userId}`);
     }
   } catch (error) {
     console.error(`[ERROR] Błąd przetwarzania wiadomości MQTT:`, error);
@@ -104,7 +107,7 @@ export const requestWatering = (userId, potId, waterAmount) => {
         responsePromises.watering.get(potId).reject(new Error('Timeout: Brak odpowiedzi na podlewanie'));
         responsePromises.watering.delete(potId);
       }
-    }, 40000); // Timeout 10 sekund
+    }, 40000); // Timeout 40 sekund
   });
 };
 
@@ -121,7 +124,7 @@ export const requestSoilMoistureCheck = (userId, potId) => {
         responsePromises.soilMoisture.get(potId).reject(new Error('Timeout: Brak odpowiedzi na sprawdzenie wilgotności gleby'));
         responsePromises.soilMoisture.delete(potId);
       }
-    }, 40000); // Timeout 10 sekund
+    }, 40000); // Timeout 40 sekund
   });
 };
 
@@ -130,7 +133,7 @@ export const sendPotListToUser = async (userId) => {
   try {
     const user = await User.findById(userId).populate('pots');
     if (!user) {
-      console.error(`Nie znaleziono użytkownika o ID: ${userId}`);
+      console.error(`[ERROR] Nie znaleziono użytkownika o ID: ${userId}`);
       return;
     }
 
@@ -138,37 +141,9 @@ export const sendPotListToUser = async (userId) => {
     const message = `Cześć, twoje doniczki to te, które mają Id: ${potIds.join(', ')}`;
     client.publish(`user/${userId}/pots`, message);
 
-    console.log(`Wysłano wiadomość MQTT z listą doniczek do użytkownika ${userId}: ${message}`);
+    console.log(`[DEBUG] Wysłano wiadomość MQTT z listą doniczek do użytkownika ${userId}: ${message}`);
   } catch (error) {
-    console.error(`Błąd wysyłania listy doniczek do użytkownika ${userId}:`, error);
-  }
-};
-
-// Funkcja sprawdzająca, czy minął czas podlewania dla każdej doniczki
-export const checkAndWaterPots = async () => {
-  try {
-    const pots = await Pot.find();
-
-    pots.forEach(pot => {
-      const now = new Date();
-      const lastWatering = pot.wateringHistory.length > 0 
-        ? new Date(pot.wateringHistory[pot.wateringHistory.length - 1].date) 
-        : new Date(0);
-
-      const intervalInMs = pot.wateringFrequency * 60 * 60 * 1000;
-      const timeSinceLastWatering = now - lastWatering;
-
-      console.log(`[DEBUG] Sprawdzanie doniczki ${pot._id}: Czas od ostatniego podlewania = ${timeSinceLastWatering / 60000} minut, Wymagany odstęp = ${intervalInMs / 60000} minut`);
-
-      if (timeSinceLastWatering >= intervalInMs) {
-        console.log(`[DEBUG] Automatyczne podlewanie doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
-        requestWatering(pot.userId, pot._id, pot.waterAmount).catch(err => {
-          console.error(`[ERROR] Błąd podczas automatycznego podlewania doniczki ${pot._id}:`, err);
-        });
-      }
-    });
-  } catch (error) {
-    console.error("Błąd przy sprawdzaniu harmonogramu podlewania:", error);
+    console.error(`[ERROR] Błąd wysyłania listy doniczek do użytkownika ${userId}:`, error);
   }
 };
 
@@ -190,19 +165,39 @@ export const fetchWeatherData = async () => {
             responsePromises.weather.get(user._id).reject(new Error('Timeout: Brak odpowiedzi na dane pogodowe'));
             responsePromises.weather.delete(user._id);
           }
-        }, 40000);
+        }, 40000); // Timeout 40 sekund
       });
     });
 
     const results = await Promise.allSettled(promises);
 
-    results.forEach((result, index) => {
+    for (const [index, result] of results.entries()) {
+      const userId = users[index]._id;
       if (result.status === 'rejected') {
-        console.error(`[ERROR] Brak odpowiedzi dla użytkownika ${users[index]._id}: ${result.reason}`);
+        console.error(`[ERROR] Brak odpowiedzi dla użytkownika ${userId}: ${result.reason}`);
       } else {
-        console.log(`[DEBUG] Odpowiedź dla użytkownika ${users[index]._id}:`, result.value);
+        console.log(`[DEBUG] Odpowiedź dla użytkownika ${userId}:`, result.value);
+
+        const weatherData = result.value;
+        const weatherEntry = new Weather({
+          latitude: weatherData.latitude,
+          longitude: weatherData.longitude,
+          temperature: weatherData.temperature,
+          humidity: weatherData.humidity,
+          pressure: weatherData.pressure,
+          uvIndex: weatherData.uvIndex,
+          visibleLight: weatherData.visibleLight,
+          rain: weatherData.rain,
+          gasLevel: weatherData.gasLevel,
+          tilt: weatherData.tilt,
+          timestamp: new Date(),
+        });
+
+        console.log(`[DEBUG] Zapisywanie danych pogodowych dla użytkownika ${userId}...`);
+        await weatherEntry.save();
+        console.log(`[DEBUG] Dane pogodowe zapisane w bazie dla użytkownika ${userId}`);
       }
-    });
+    }
 
     console.log(`[DEBUG] Wszystkie żądania pogodowe zostały przetworzone.`);
   } catch (error) {
