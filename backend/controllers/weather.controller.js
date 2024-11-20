@@ -4,6 +4,8 @@ import Weather from "../models/Weather.js";
 export const saveWeatherData = async (req, res) => {
     try {
         const {
+            latitude,
+            longitude,
             temperature,
             humidity,
             pressure,
@@ -15,6 +17,8 @@ export const saveWeatherData = async (req, res) => {
         } = req.body;
 
         const weatherEntry = new Weather({
+            latitude,
+            longitude,
             temperature,
             humidity,
             pressure,

@@ -32,7 +32,7 @@ const LoggedAccountSettings = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [SERVER]);
 
   const handleFieldSubmit = (field) => {
     setFieldToUpdate(field);

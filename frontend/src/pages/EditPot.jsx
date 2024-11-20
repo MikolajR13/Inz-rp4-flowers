@@ -33,7 +33,7 @@ const EditPot = () => {
     } catch (error) {
       console.error('Błąd podczas pobierania szczegółów doniczki:', error);
     }
-  }, [potId]);
+  }, [potId, SERVER]);
 
   useEffect(() => {
     fetchPotDetails();

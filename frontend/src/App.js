@@ -8,6 +8,7 @@ import { getUserInfo } from './utils/getUserInfo'; // Import funkcji getUserInfo
 
 // Updated imports of pages
 import HomePage from './pages/HomePage';
+import WeatherPage from './pages/WeatherPage';
 import AboutPage from './pages/AboutPage';
 import ProjectPage from './pages/ProjectPage';
 import LoginPage from './pages/LoginPage';
@@ -93,6 +94,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditPot />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/weather"
+          element={
+            <ProtectedRoute>
+              <WeatherPage />
             </ProtectedRoute>
           }
         />
