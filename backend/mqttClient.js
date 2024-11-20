@@ -104,7 +104,7 @@ export const requestWatering = (userId, potId, waterAmount) => {
         responsePromises.watering.get(potId).reject(new Error('Timeout: Brak odpowiedzi na podlewanie'));
         responsePromises.watering.delete(potId);
       }
-    }, 10000); // Timeout 10 sekund
+    }, 40000); // Timeout 10 sekund
   });
 };
 
@@ -121,7 +121,7 @@ export const requestSoilMoistureCheck = (userId, potId) => {
         responsePromises.soilMoisture.get(potId).reject(new Error('Timeout: Brak odpowiedzi na sprawdzenie wilgotności gleby'));
         responsePromises.soilMoisture.delete(potId);
       }
-    }, 10000); // Timeout 10 sekund
+    }, 40000); // Timeout 10 sekund
   });
 };
 
@@ -190,7 +190,7 @@ export const fetchWeatherData = async () => {
             responsePromises.weather.get(user._id).reject(new Error('Timeout: Brak odpowiedzi na dane pogodowe'));
             responsePromises.weather.delete(user._id);
           }
-        }, 10000);
+        }, 40000);
       });
     });
 
