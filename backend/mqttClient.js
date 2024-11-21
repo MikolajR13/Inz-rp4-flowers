@@ -11,7 +11,7 @@ client.on('connect', async () => {
   console.log('[DEBUG] MQTT connected');
   client.subscribe('user/+/pot/+/wateringResponse'); // Subskrypcja na odpowiedzi dla podlewania
   client.subscribe('user/+/pot/+/soilMoistureResponse'); // Subskrypcja na odpowiedzi dla wilgotności gleby
-  client.subscribe('user/+/weatherResponse'); // Subskrypcja na dane pogodowe
+  client.subscribe('user/weatherResponse'); // Subskrypcja na dane pogodowe
 });
 
 // Obsługa wiadomości MQTT
