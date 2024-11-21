@@ -1,5 +1,5 @@
 import Weather from "../models/Weather.js";
-import { requestWeatherDataForUser } from '../mqttClient';
+import { requestWeatherDataForUser } from '../mqttClient.js';
 
 
 // Zapisanie danych pogodowych do bazy danych
