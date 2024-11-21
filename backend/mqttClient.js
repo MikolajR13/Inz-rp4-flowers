@@ -102,12 +102,24 @@ export const requestWatering = (userId, potId, waterAmount) => {
 
     client.publish(`user/${userId}/pot/${potId}/watering`, JSON.stringify({ waterAmount }));
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (responsePromises.watering.has(potId)) {
         responsePromises.watering.get(potId).reject(new Error('Timeout: Brak odpowiedzi na podlewanie'));
         responsePromises.watering.delete(potId);
       }
     }, 40000); // Timeout 40 sekund
+
+    // Czyszczenie timeoutu po rozwiązaniu obietnicy
+    responsePromises.watering.set(potId, {
+      resolve: (data) => {
+        clearTimeout(timeout);
+        resolve(data);
+      },
+      reject: (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
   });
 };
 
@@ -119,12 +131,23 @@ export const requestSoilMoistureCheck = (userId, potId) => {
 
     client.publish(`user/${userId}/pot/${potId}/soilMoistureRequest`, JSON.stringify({ request: "checkSoilMoisture" }));
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (responsePromises.soilMoisture.has(potId)) {
         responsePromises.soilMoisture.get(potId).reject(new Error('Timeout: Brak odpowiedzi na sprawdzenie wilgotności gleby'));
         responsePromises.soilMoisture.delete(potId);
       }
     }, 40000); // Timeout 40 sekund
+
+    responsePromises.soilMoisture.set(potId, {
+      resolve: (data) => {
+        clearTimeout(timeout);
+        resolve(data);
+      },
+      reject: (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
   });
 };
 
@@ -157,17 +180,16 @@ export const fetchWeatherData = async () => {
       return new Promise((resolve, reject) => {
         console.log(`[DEBUG] Wysyłanie żądania o dane pogodowe dla użytkownika ${user._id}`);
         responsePromises.weather.set(user._id, { resolve, reject });
-    
+
         client.publish(`user/${user._id}/weatherRequest`, JSON.stringify({ request: "fetchWeather" }));
-    
+
         const timeout = setTimeout(() => {
           if (responsePromises.weather.has(user._id)) {
             responsePromises.weather.get(user._id).reject(new Error('Timeout: Brak odpowiedzi na dane pogodowe'));
             responsePromises.weather.delete(user._id);
           }
         }, 40000); // Timeout 40 sekund
-    
-        // Ustawienie automatycznego czyszczenia timeoutu po rozwiązaniu obietnicy
+
         responsePromises.weather.set(user._id, {
           resolve: (data) => {
             clearTimeout(timeout);
@@ -214,6 +236,36 @@ export const fetchWeatherData = async () => {
     console.log(`[DEBUG] Wszystkie żądania pogodowe zostały przetworzone.`);
   } catch (error) {
     console.error(`[ERROR] Błąd przy zbieraniu danych pogodowych:`, error);
+  }
+};
+
+// Funkcja sprawdzająca, czy minął czas podlewania dla każdej doniczki
+export const checkAndWaterPots = async () => {
+  try {
+    const pots = await Pot.find();
+
+    pots.forEach(async pot => {
+      const now = new Date();
+      const lastWatering = pot.wateringHistory.length > 0 
+        ? new Date(pot.wateringHistory[pot.wateringHistory.length - 1].date) 
+        : new Date(0);
+
+      const intervalInMs = pot.wateringFrequency * 60 * 60 * 1000;
+      const timeSinceLastWatering = now - lastWatering;
+
+      console.log(`[DEBUG] Sprawdzanie doniczki ${pot._id}: Czas od ostatniego podlewania = ${timeSinceLastWatering / 60000} minut, Wymagany odstęp = ${intervalInMs / 60000} minut`);
+
+      if (timeSinceLastWatering >= intervalInMs) {
+        console.log(`[DEBUG] Automatyczne podlewanie doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
+        try {
+          await requestWatering(pot.userId, pot._id, pot.waterAmount);
+        } catch (err) {
+          console.error(`[ERROR] Błąd podczas automatycznego podlewania doniczki ${pot._id}:`, err);
+        }
+      }
+    });
+  } catch (error) {
+    console.error("[ERROR] Błąd przy sprawdzaniu harmonogramu podlewania:", error);
   }
 };
 
