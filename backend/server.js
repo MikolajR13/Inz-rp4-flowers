@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 // Harmonogram na sprawdzanie i podlewanie doniczek
 cron.schedule('* * * * *', checkAndWaterPots);
 // Harmonogram na sprawdzanie pogody
-cron.schedule('0 * * * *', collectWeatherDataForAllUsers);
+cron.schedule('* * * * *', collectWeatherDataForAllUsers);
 
 app.listen(PORT, () => {
     connectDb();
