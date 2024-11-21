@@ -65,8 +65,11 @@ client.on('message', async (topic, message) => {
       } = data;
 
       if (responsePromises.weather.has(userId)) {
+        console.log(`[DEBUG] Rozwiązywanie obietnicy dla danych pogodowych użytkownika ${userId}`);
         responsePromises.weather.get(userId).resolve(data);
-        responsePromises.weather.delete(userId);
+        responsePromises.weather.delete(userId); // Usuwanie obietnicy po rozwiązaniu
+      } else {
+        console.error(`[ERROR] Brak obietnicy dla userId ${userId} w responsePromises.weather`);
       }
 
       console.log(`[DEBUG] Dane pogodowe użytkownika ${userId} odebrane`, data);
@@ -178,13 +181,14 @@ export const fetchWeatherData = async () => {
 
     const promises = users.map(user => {
       return new Promise((resolve, reject) => {
-        console.log(`[DEBUG] Wysyłanie żądania o dane pogodowe dla użytkownika ${user._id}`);
+        console.log(`[DEBUG] Ustawianie obietnicy dla użytkownika ${user._id}`);
         responsePromises.weather.set(user._id, { resolve, reject });
 
         client.publish(`user/${user._id}/weatherRequest`, JSON.stringify({ request: "fetchWeather" }));
 
         const timeout = setTimeout(() => {
           if (responsePromises.weather.has(user._id)) {
+            console.error(`[ERROR] Timeout dla użytkownika ${user._id} na dane pogodowe`);
             responsePromises.weather.get(user._id).reject(new Error('Timeout: Brak odpowiedzi na dane pogodowe'));
             responsePromises.weather.delete(user._id);
           }
@@ -193,10 +197,12 @@ export const fetchWeatherData = async () => {
         responsePromises.weather.set(user._id, {
           resolve: (data) => {
             clearTimeout(timeout);
+            console.log(`[DEBUG] Obietnica rozwiązana dla użytkownika ${user._id}`);
             resolve(data);
           },
           reject: (error) => {
             clearTimeout(timeout);
+            console.log(`[DEBUG] Obietnica odrzucona dla użytkownika ${user._id}`);
             reject(error);
           }
         });
