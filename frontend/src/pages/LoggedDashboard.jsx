@@ -3,10 +3,9 @@ import { Box, Heading, Grid, Text, Image, Card, CardBody, Button, Layer } from '
 import { useNavigate } from 'react-router-dom';
 import potIcon from '../assets/pot.png'; // Ikona doniczki
 import addIcon from '../assets/add.png'; // Ikona dodania nowej doniczki
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedDashboard = () => {
   const [pots, setPots] = useState([]);

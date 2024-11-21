@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, Button, Card, CardBody } from 'grommet';
 import { useParams, useNavigate } from 'react-router-dom';
-import dotenv from "dotenv";
-dotenv.config();
 
-const SERVER = process.env.SERVER;
+
+const SERVER = process.env.REACT_APP_SERVER;
 
 const LoggedPotDetails = () => {
   const { potId } = useParams();

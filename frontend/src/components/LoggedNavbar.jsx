@@ -44,6 +44,13 @@ const LoggedNavbar = () => {
             color={getButtonColor('/account-settings')}
           />
         </Link>
+        <Link to="/weather">
+          <Button
+            label="Pogoda"
+            hoverIndicator
+            color={getButtonColor('/weather')}
+          />
+        </Link>
       </Box>
 
       <Nav direction="row" align="center" gap="medium">

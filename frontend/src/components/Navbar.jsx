@@ -37,7 +37,7 @@ const Navbar = () => {
             color={getButtonColor('/project')}
           />
         </Link>
-        <a href="https://github.com/MikolajR13/Inz-rp4-flowers">
+        <a href="https://github.com/MikolajR13/InzynierkaKwiatki">
           <Button label="GitHub" hoverIndicator color="brand" />
         </a>
       </Box>
