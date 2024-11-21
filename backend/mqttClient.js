@@ -6,8 +6,6 @@ import { addWateringHistoryForMqtt } from './controllers/wateringHistory.control
 
 const client = mqtt.connect(process.env.MQTT_BROKER_URL);
 
-let currentUserId = null; // ID aktualnie obsługiwanego użytkownika
-
 // Subskrypcje MQTT
 client.on('connect', async () => {
   console.log('[DEBUG] MQTT connected');
@@ -76,15 +74,12 @@ client.on('message', async (topic, message) => {
 });
 
 // Funkcja do wysyłania żądania pogodowego dla jednego użytkownika
-export const requestWeatherDataForUser = async (userId) => {
+export const requestWeatherDataForUser = (userId) => {
   console.log(`[DEBUG] Wysyłanie żądania o dane pogodowe dla użytkownika ${userId}`);
   const topic = `user/${userId}/weatherRequest`;
 
   // Publikowanie żądania na temat
   client.publish(topic, JSON.stringify({ request: "fetchWeather" }));
-
-  // Oczekiwanie na odpowiedź przez 5 sekund
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 };
 
 // Funkcja do zbierania danych pogodowych dla wszystkich użytkowników
@@ -98,9 +93,6 @@ export const collectWeatherDataForAllUsers = async () => {
       const topic = `user/${user._id}/weatherRequest`;
 
       client.publish(topic, JSON.stringify({ request: "fetchWeather" }));
-
-      // Oczekiwanie na odpowiedź
-      await new Promise((resolve) => setTimeout(resolve, 40000));
     }
 
     console.log(`[DEBUG] Zbieranie danych pogodowych zakończone.`);
@@ -110,25 +102,19 @@ export const collectWeatherDataForAllUsers = async () => {
 };
 
 // Funkcja do wysyłania żądania podlewania
-export const requestWatering = async (userId, potId, waterAmount) => {
+export const requestWatering = (userId, potId, waterAmount) => {
   console.log(`[DEBUG] Wysyłanie żądania podlewania dla doniczki ${potId} użytkownika ${userId} z ilością wody: ${waterAmount} ml`);
   const topic = `user/${userId}/pot/${potId}/watering`;
 
   client.publish(topic, JSON.stringify({ waterAmount }));
-
-  // Oczekiwanie na odpowiedź przez 5 sekund
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 };
 
 // Funkcja do wysyłania żądania o sprawdzenie wilgotności gleby
-export const requestSoilMoistureCheck = async (userId, potId) => {
+export const requestSoilMoistureCheck = (userId, potId) => {
   console.log(`[DEBUG] Wysyłanie żądania o sprawdzenie wilgotności gleby dla doniczki ${potId} użytkownika ${userId}`);
   const topic = `user/${userId}/pot/${potId}/soilMoistureRequest`;
 
   client.publish(topic, JSON.stringify({ request: "checkSoilMoisture" }));
-
-  // Oczekiwanie na odpowiedź przez 5 sekund
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 };
 
 // Funkcja do wysyłania listy doniczek użytkownika
@@ -169,7 +155,7 @@ export const checkAndWaterPots = async () => {
       if (timeSinceLastWatering >= intervalInMs) {
         console.log(`[DEBUG] Automatyczne podlewanie doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
         try {
-          await requestWatering(pot.userId, pot._id, pot.waterAmount);
+          requestWatering(pot.userId, pot._id, pot.waterAmount);
         } catch (err) {
           console.error(`[ERROR] Błąd podczas automatycznego podlewania doniczki ${pot._id}:`, err);
         }
