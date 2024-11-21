@@ -6,7 +6,7 @@ import potRoutes from "./routes/pot.route.js";
 import historyRoutes from "./routes/history.route.js";
 import weatherRoutes from "./routes/weather.route.js"; // Import nowej trasy pogodowej
 import cors from 'cors';
-import { checkAndWaterPots, fetchWeatherData } from './mqttClient.js';
+import { checkAndWaterPots, collectWeatherDataForAllUsers } from './mqttClient.js';
 import cron from 'node-cron';
 
 dotenv.config();
@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 // Harmonogram na sprawdzanie i podlewanie doniczek
 cron.schedule('* * * * *', checkAndWaterPots);
 // Harmonogram na sprawdzanie pogody
-cron.schedule('0 * * * *', fetchWeatherData);
+cron.schedule('0 * * * *', collectWeatherDataForAllUsers);
 
 app.listen(PORT, () => {
     connectDb();

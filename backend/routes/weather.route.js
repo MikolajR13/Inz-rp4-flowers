@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/", saveWeatherData);
 
 // Pobranie wszystkich danych pogodowych
-router.get("/", getWeatherData);
+router.get("/current", getWeatherData);
 
 // Pobranie ograniczonej liczby wpisów z paginacją
 router.get("/limit", getLimitedWeatherData);

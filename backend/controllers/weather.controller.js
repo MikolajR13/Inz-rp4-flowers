@@ -1,4 +1,6 @@
 import Weather from "../models/Weather.js";
+import { requestWeatherDataForUser } from '../mqttClient';
+
 
 // Zapisanie danych pogodowych do bazy danych
 export const saveWeatherData = async (req, res) => {
@@ -39,9 +41,17 @@ export const saveWeatherData = async (req, res) => {
 // Pobranie wszystkich zapisanych danych pogodowych
 export const getWeatherData = async (req, res) => {
     try {
+        const userId = req.user.id; // Id użytkownika
+        console.log(`[DEBUG] Wysyłanie żądania o dane pogodowe dla użytkownika ${userId}`);
+        
+        // Wyślij żądanie MQTT i poczekaj na odpowiedź
+        await requestWeatherDataForUser(userId);
+
+        // Pobierz dane pogodowe po odpowiedzi
         const weatherRecords = await Weather.find().sort({ timestamp: -1 });
         res.status(200).json(weatherRecords);
     } catch (error) {
+        console.error(`[ERROR] Błąd podczas pobierania danych pogodowych:`, error);
         res.status(500).json({ error: error.message });
     }
 };
