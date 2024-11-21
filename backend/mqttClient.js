@@ -9,32 +9,35 @@ const client = mqtt.connect(process.env.MQTT_BROKER_URL);
 // Subskrypcje MQTT
 client.on('connect', async () => {
   console.log('[DEBUG] MQTT connected');
-  client.subscribe('user/+/pot/+/wateringResponse'); // Subskrypcja na odpowiedzi dla podlewania
-  client.subscribe('user/+/pot/+/soilMoistureResponse'); // Subskrypcja na odpowiedzi dla wilgotności gleby
-  client.subscribe('user/+/pot/+/weatherResponse'); // Subskrypcja na dane pogodowe
+  client.subscribe('pot/+/wateringResponse'); // Subskrypcja na odpowiedzi dla podlewania
+  client.subscribe('pot/+/soilMoistureResponse'); // Subskrypcja na odpowiedzi dla wilgotności gleby
+  client.subscribe('user/+/weatherResponse'); // Subskrypcja na dane pogodowe
 });
 
 // Obsługa wiadomości MQTT
 client.on('message', async (topic, message) => {
-  const [_, userId, section, potId, type] = topic.split('/');
+  const parts = topic.split('/');
   const data = JSON.parse(message.toString());
 
   console.log(`[DEBUG] Otrzymano wiadomość na temacie ${topic} z danymi:`, data);
 
   try {
-    if (section === 'pot' && type === 'wateringResponse') {
+    if (parts[0] === 'pot' && parts[2] === 'wateringResponse') {
+      const potId = parts[1];
       const { waterAmount, soilMoisture } = data;
 
       console.log(`[DEBUG] Otrzymano odpowiedź na podlewanie doniczki ${potId}. Woda: ${waterAmount} ml, Wilgotność gleby: ${soilMoisture}`);
       await addWateringHistoryForMqtt(potId, waterAmount, soilMoisture);
 
-    } else if (section === 'pot' && type === 'soilMoistureResponse') {
+    } else if (parts[0] === 'pot' && parts[2] === 'soilMoistureResponse') {
+      const potId = parts[1];
       const { soilMoisture } = data;
 
       console.log(`[DEBUG] Otrzymano odpowiedź o wilgotności gleby dla doniczki ${potId}. Wilgotność: ${soilMoisture}`);
       await addWateringHistoryForMqtt(potId, null, soilMoisture);
 
-    } else if (type === 'weatherResponse') {
+    } else if (parts[0] === 'user' && parts[2] === 'weatherResponse') {
+      const userId = parts[1];
       const {
         latitude,
         longitude,
@@ -102,17 +105,17 @@ export const collectWeatherDataForAllUsers = async () => {
 };
 
 // Funkcja do wysyłania żądania podlewania
-export const requestWatering = (userId, potId, waterAmount) => {
-  console.log(`[DEBUG] Wysyłanie żądania podlewania dla doniczki ${potId} użytkownika ${userId} z ilością wody: ${waterAmount} ml`);
-  const topic = `user/${userId}/pot/${potId}/watering`;
+export const requestWatering = (potId, waterAmount) => {
+  console.log(`[DEBUG] Wysyłanie żądania podlewania dla doniczki ${potId} z ilością wody: ${waterAmount} ml`);
+  const topic = `pot/${potId}/watering`;
 
   client.publish(topic, JSON.stringify({ waterAmount }));
 };
 
 // Funkcja do wysyłania żądania o sprawdzenie wilgotności gleby
-export const requestSoilMoistureCheck = (userId, potId) => {
-  console.log(`[DEBUG] Wysyłanie żądania o sprawdzenie wilgotności gleby dla doniczki ${potId} użytkownika ${userId}`);
-  const topic = `user/${userId}/pot/${potId}/soilMoistureRequest`;
+export const requestSoilMoistureCheck = (potId) => {
+  console.log(`[DEBUG] Wysyłanie żądania o sprawdzenie wilgotności gleby dla doniczki ${potId}`);
+  const topic = `pot/${potId}/soilMoistureRequest`;
 
   client.publish(topic, JSON.stringify({ request: "checkSoilMoisture" }));
 };
@@ -155,7 +158,7 @@ export const checkAndWaterPots = async () => {
       if (timeSinceLastWatering >= intervalInMs) {
         console.log(`[DEBUG] Automatyczne podlewanie doniczki ${pot._id} z ilością wody: ${pot.waterAmount} ml`);
         try {
-          requestWatering(pot.userId, pot._id, pot.waterAmount);
+          requestWatering(pot._id, pot.waterAmount);
         } catch (err) {
           console.error(`[ERROR] Błąd podczas automatycznego podlewania doniczki ${pot._id}:`, err);
         }
