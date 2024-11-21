@@ -157,15 +157,27 @@ export const fetchWeatherData = async () => {
       return new Promise((resolve, reject) => {
         console.log(`[DEBUG] Wysyłanie żądania o dane pogodowe dla użytkownika ${user._id}`);
         responsePromises.weather.set(user._id, { resolve, reject });
-
+    
         client.publish(`user/${user._id}/weatherRequest`, JSON.stringify({ request: "fetchWeather" }));
-
-        setTimeout(() => {
+    
+        const timeout = setTimeout(() => {
           if (responsePromises.weather.has(user._id)) {
             responsePromises.weather.get(user._id).reject(new Error('Timeout: Brak odpowiedzi na dane pogodowe'));
             responsePromises.weather.delete(user._id);
           }
         }, 40000); // Timeout 40 sekund
+    
+        // Ustawienie automatycznego czyszczenia timeoutu po rozwiązaniu obietnicy
+        responsePromises.weather.set(user._id, {
+          resolve: (data) => {
+            clearTimeout(timeout);
+            resolve(data);
+          },
+          reject: (error) => {
+            clearTimeout(timeout);
+            reject(error);
+          }
+        });
       });
     });
 
